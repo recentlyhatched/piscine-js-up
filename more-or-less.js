@@ -1,9 +1,9 @@
 function more(n) {
-    return n++
+    return n + 1
 }
 
 const less = (n) => {
-    return n--
+    return n - 1
 }
 
 function add(a, b) {
