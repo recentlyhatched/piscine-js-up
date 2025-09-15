@@ -3,5 +3,5 @@ const id = (arg) => {
 }
 
 function getLength(item) {
-    return length(item)
+    return item.length
 }
