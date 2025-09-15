@@ -19,4 +19,4 @@ const nested = {
         bool: true
     }
 }
-Object.freeze(nested)
+Object.deepFreeze(nested)
