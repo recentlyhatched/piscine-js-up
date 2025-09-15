@@ -3,9 +3,9 @@ function first(item) {
 }
 
 const last = (item) => {
-    return item[-1]
+    return item.at(-1)
 }
 
 function kiss(item) {
-    return [item[-1], item[0]]
+    return [item.at(-1), item[0]]
 }
