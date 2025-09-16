@@ -33,17 +33,17 @@ const strToObj = (str) => Object.fromEntries(str.split("").map((c, i) => [i, c])
 
 // superTypeOf: enhanced typeof
 const superTypeOf = (val) => {
-  if (val === null) return "Null"
+  if (val === null) return "null"
   if (Array.isArray(val)) return "Array"
   if (val instanceof Set) return "Set"
   if (val instanceof Map) return "Map"
   if (val instanceof Date) return "Date"
   if (typeof val === "object") return "Object"
   if (typeof val === "string") return "String"
-  if (typeof val === "number") return "Number"
-  if (typeof val === "boolean") return "Boolean"
-  if (typeof val === "function") return "Function"
-  if (typeof val === "undefined") return "Undefined"
-  if (typeof val === "symbol") return "Symbol"
+  if (typeof val === "number") return "number"
+  if (typeof val === "boolean") return "boolean"
+  if (typeof val === "function") return "function"
+  if (typeof val === "undefined") return "undefined"
+  if (typeof val === "symbol") return "symbol"
   return typeof val
 };
