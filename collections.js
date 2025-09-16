@@ -43,7 +43,7 @@ const superTypeOf = (val) => {
   if (typeof val === "number") return "Number"
   if (typeof val === "boolean") return "Boolean"
   if (typeof val === "function") return "Function"
-  if (typeof val === "undefined") return "Undefined"
+  if (typeof val === "undefined") return "undefined"
   if (typeof val === "symbol") return "Symbol"
   return typeof val
 };
