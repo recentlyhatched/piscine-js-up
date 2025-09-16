@@ -2,7 +2,7 @@
 const arrToSet = (arr) => new Set(arr)
 
 // array String
-const arrToStr = (arr) => arr.join(",")
+const arrToStr = (arr) => arr.join("")
 
 // set Array
 const setToArr = (set) => Array.from(set)
