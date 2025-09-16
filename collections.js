@@ -1,42 +1,42 @@
-// array Set
+// array to set
 const arrToSet = (arr) => new Set(arr)
 
-// array String
+// array to string
 const arrToStr = (arr) => arr.join("")
 
-// set Array
+// set to array
 const setToArr = (set) => Array.from(set)
 
-// set String
+// set to string
 const setToStr = (set) => Array.from(set).join("")
 
-// string array
+// string to array
 const strToArr = (str) => str.split("")
 
-// string Set
+// string to set
 const strToSet = (str) => new Set(str)
 
-// map Object
+// map to object
 const mapToObj = (map) => Object.fromEntries(map)
 
-// object Array (values)
+// object to array (values)
 const objToArr = (obj) => Object.values(obj)
 
-// object Map
+// object to map
 const objToMap = (obj) => new Map(Object.entries(obj))
 
-// array Object (key: index, value: element)
+// array to object (key: index, value: element)
 const arrToObj = (arr) => Object.fromEntries(arr.map((v, i) => [i, v]))
 
-// string Object (each char becomes a key with value = char)
+// string to object (each char becomes a key with value = char)
 const strToObj = (str) => Object.fromEntries(str.split("").map((c, i) => [i, c]))
 
 // superTypeOf: enhanced typeof
 const superTypeOf = (val) => {
-  if (val === null) return "null"
-  if (Array.isArray(val)) return "array"
-  if (val instanceof Set) return "set"
-  if (val instanceof Map) return "map"
-  if (val instanceof Date) return "date"
+  if (val === null) return "Null"
+  if (Array.isArray(val)) return "Array"
+  if (val instanceof Set) return "Set"
+  if (val instanceof Map) return "Map"
+  if (val instanceof Date) return "Date"
   return typeof val
 };
