@@ -39,5 +39,11 @@ const superTypeOf = (val) => {
   if (val instanceof Map) return "Map"
   if (val instanceof Date) return "Date"
   if (typeof val === "object") return "Object"
+  if (typeof val === "string") return "String"
+  if (typeof val === "number") return "Number"
+  if (typeof val === "boolean") return "Boolean"
+  if (typeof val === "function") return "Function"
+  if (typeof val === "undefined") return "Undefined"
+  if (typeof val === "symbol") return "Symbol"
   return typeof val
 };
