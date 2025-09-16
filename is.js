@@ -1,5 +1,5 @@
 is.num = (val) => typeof val === "number"
-is.nan = (val) => typeof val === "number"
+is.nan = (val) => Number.isNaN(val)
 is.str = (val) => typeof val === "string"
 is.bool = (val) => typeof val === "boolean"
 is.undef = (val) => val === undefined
