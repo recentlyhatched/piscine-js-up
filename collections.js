@@ -41,6 +41,7 @@ const superTypeOf = (val) => {
   if (typeof val === "object") return "Object"
   if (typeof val === "string") return "String"
   if (typeof val === "number") return "Number"
+  if (typeof val === "NaN") return "Number"
   if (typeof val === "boolean") return "Boolean"
   if (typeof val === "function") return "Function"
   if (typeof val === "undefined") return "undefined"
