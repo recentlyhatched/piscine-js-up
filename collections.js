@@ -8,7 +8,7 @@ const arrToStr = (arr) => arr.join("")
 const setToArr = (set) => Array.from(set)
 
 // set String
-const setToStr = (set) => Array.from(set).join(",")
+const setToStr = (set) => Array.from(set).join("")
 
 // string array
 const strToArr = (str) => str.split("")
