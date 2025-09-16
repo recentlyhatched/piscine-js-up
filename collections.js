@@ -38,5 +38,6 @@ const superTypeOf = (val) => {
   if (val instanceof Set) return "Set"
   if (val instanceof Map) return "Map"
   if (val instanceof Date) return "Date"
+  if (typeof val === "object") return "Object"
   return typeof val
 };
