@@ -37,7 +37,7 @@ const divide = (a, b) => {
     }
 
     if(isNegative) {
-        return -result
+        return -count
     }
 
     return count
@@ -75,4 +75,5 @@ console.log(divide(21, -4))
 console.log(modulo(21, -5))
 console.log(modulo(34, 78))
 console.log(divide(78, 34))
+console.log(divide(123, -22))
 
