@@ -29,11 +29,11 @@ const divide = (a, b) => {
 
     let count = 0
     for(let i = 1; i <= Math.abs(b); i++) {
-        if(result < 0) {
-            break
-        }
         result -= Math.abs(b)
         count++
+        if((result-Math.abs(b)) < 0) {
+            break
+        }
     }
 
     if(isNegative) {
@@ -74,3 +74,5 @@ console.log(multiply(5, -4))
 console.log(divide(21, -4))
 console.log(modulo(21, -5))
 console.log(modulo(34, 78))
+console.log(divide(78, 34))
+
