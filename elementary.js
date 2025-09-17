@@ -49,16 +49,12 @@ function modulo(a, b) {
     }
 
     let result = Math.abs(a)
-
-    if((a < 0 && b > 0) || (a > 0 && b < 0)) {
-        isNegative = true
-    }
     
     for(let i = 1; i <= Math.abs(b); i++) {
     
         result -= Math.abs(b)
         if((result-Math.abs(b)) < 0) {
-            break
+            return result
         }
     }
 
