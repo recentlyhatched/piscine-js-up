@@ -49,7 +49,6 @@ function modulo(a, b) {
     }
 
     let result = Math.abs(a)
-    let isNegative = false
 
     if((a < 0 && b > 0) || (a > 0 && b < 0)) {
         isNegative = true
@@ -63,17 +62,5 @@ function modulo(a, b) {
         }
     }
 
-    if(isNegative) {
-        return -result
-    }
-
     return result
 }
-
-console.log(multiply(5, -4))
-console.log(divide(21, -4))
-console.log(modulo(21, -5))
-console.log(modulo(34, 78))
-console.log(divide(78, 34))
-console.log(divide(123, -22))
-
