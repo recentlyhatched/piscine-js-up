@@ -16,6 +16,10 @@ const multiply = (a, b) => {
 }
 
 const divide = (a, b) => {
+    if(Math.abs(b) > Math.abs(a)) {
+        return 0
+    }
+
     let result = Math.abs(a)
     let isNegative = false
 
@@ -40,6 +44,10 @@ const divide = (a, b) => {
 }
 
 function modulo(a, b) {
+    if(Math.abs(b) > Math.abs(a)) {
+        return Math.abs(a)
+    }
+
     let result = Math.abs(a)
     let isNegative = false
 
@@ -65,3 +73,4 @@ function modulo(a, b) {
 console.log(multiply(5, -4))
 console.log(divide(21, -4))
 console.log(modulo(21, -5))
+console.log(modulo(34, 78))
