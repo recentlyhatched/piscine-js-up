@@ -48,13 +48,23 @@ function modulo(a, b) {
         return Math.abs(a)
     }
 
+    let isNegative = false
+
+    if(a < 0 ) {
+        isNegative = true
+    }
+
     let result = Math.abs(a)
     
     for(let i = 1; i <= Math.abs(b); i++) {
     
         result -= Math.abs(b)
         if((result-Math.abs(b)) < 0) {
-            return result
+            if (isNegative) {
+                return -result
+            } else {
+                return result
+            }
         }
     }
 
