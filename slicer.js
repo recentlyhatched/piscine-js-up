@@ -1,20 +1,25 @@
-const slice = (item, i, end) => {
-    end = end || item.length
-    let result
+const slice = (item, i = 0, end = item.length) => {
+  const len = item.length;
 
-    if(Array.isArray(item) === true) {
-        result = []
-        for(i; i < end; i++) {
-            result.push(item[i])
-        }
-    }
+  // Handle negative indices
+  let start = i < 0 ? len + i : i;
+  let stop = end < 0 ? len + end : end;
 
-    if(typeof item === "string") {
-        result = ""
-        for(i; i < end; i++) {
-            result += item[i]
-        }
+  if (Array.isArray(item)) {
+    const result = [];
+    for (let idx = start; idx < stop && idx < len; idx++) {
+      result.push(item[idx]);
     }
-    
-    return result
-}
+    return result;
+  }
+
+  if (typeof item === "string") {
+    let result = "";
+    for (let idx = start; idx < stop && idx < len; idx++) {
+      result += item[idx];
+    }
+    return result;
+  }
+
+  return undefined;
+};
