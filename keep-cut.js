@@ -25,5 +25,8 @@ function keepLast(str) {
 
 // keep first 2 and last 2 characters
 function keepFirstLast(str) {
-  return str.slice(0, 2) + str.slice(-2);
+    if (str.length >= 4) {
+        return str.slice(0, 2) + str.slice(-2);
+    }
+    return str
 }
