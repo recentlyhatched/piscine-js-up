@@ -5,7 +5,7 @@ function chunk(arr, size) {
     for (let j = i; j < i + size; j++) {
       sub.push(arr[j]);
     }
-    result.push(sub.join());
+    result.push(sub);
   }
   return result;
 }
