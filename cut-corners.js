@@ -1,34 +1,33 @@
 function trunc(x) {
-  return x < 0 ? Math.ceil(x) : Math.floor(x);
+  if (x >= 0) {
+    let i = 0;
+    while (i + 1 <= x) i++;
+    return i;
+  } else {
+    let i = 0;
+    while (i - 1 >= x) i--;
+    return i;
+  }
 }
 
 function floor(x) {
-  // already an integer
-  if (x === trunc(x)) return x;
-  // positive numbers, drop fraction
-  if (x > 0) return trunc(x);
-  // negative numbers, drop fraction, then subtract 1
-  return trunc(x) - 1;
+  const t = trunc(x);
+  if (t === x) return t;
+  return x < 0 ? t - 1 : t;
 }
 
 function ceil(x) {
-  // already an integer
-  if (x === trunc(x)) return x;
-  // positive numbers, drop fraction, then add 1
-  if (x > 0) return trunc(x) + 1;
-  // negative numbers, just drop fraction
-  return trunc(x);
+  const t = trunc(x);
+  if (t === x) return t;
+  return x > 0 ? t + 1 : t;
 }
 
 function round(x) {
-  const intPart = trunc(x);
-  const frac = x - intPart;
-
+  const t = trunc(x);
+  const frac = x - t;
   if (x >= 0) {
-    // round up if fractional part >= 0.5
-    return frac >= 0.5 ? intPart + 1 : intPart;
+    return frac >= 0.5 ? t + 1 : t;
   } else {
-    // negatives, round toward -∞ if frac <= -0.5
-    return frac <= -0.5 ? intPart - 1 : intPart;
+    return frac <= -0.5 ? t - 1 : t;
   }
 }
