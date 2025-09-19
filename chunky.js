@@ -1,6 +1,4 @@
 function chunk(arr, size) {
-  if (!Array.isArray(arr)) throw new TypeError("First argument must be an array");
-
   size = Math.floor(Number(size));    // coerce to integer
   if (!size || size < 1) return [];   // guard: non-positive size -> empty result
 
