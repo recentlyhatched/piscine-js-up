@@ -4,15 +4,9 @@ function pyramid(chars, height) {
   const lines = [];
 
   for (let i = 1; i <= height; i++) {
-    const width = 2 * i - 1;               // number of characters needed on this row
-    let content = "";
-
-    // build exactly `width` characters by cycling through `chars`
-    for (let k = 0; k < width; k++) {
-      content += chars[k % patternLen];
-    }
-
-    const leading = " ".repeat(height - i); // only leading spaces, no trailing
+    const repeats = 2 * i - 1;                      // how many whole `chars` units to place
+    const leading = " ".repeat((height - i) * patternLen); // scale spaces by pattern length
+    const content = chars.repeat(repeats);          // repeat the full pattern unit
     lines.push(leading + content);
   }
 
