@@ -1,13 +1,18 @@
 function pyramid(chars, height) {
   if (height <= 0) return "";
-  const lines = [];
   const patternLen = chars.length;
+  const lines = [];
 
   for (let i = 1; i <= height; i++) {
-    const width = 2 * i - 1;                    // characters needed
-    const repeats = Math.ceil(width / patternLen);
-    const content = chars.repeat(repeats).slice(0, width);
-    const leading = " ".repeat(height - i);     // only leading spaces, no trailing
+    const width = 2 * i - 1;               // number of characters needed on this row
+    let content = "";
+
+    // build exactly `width` characters by cycling through `chars`
+    for (let k = 0; k < width; k++) {
+      content += chars[k % patternLen];
+    }
+
+    const leading = " ".repeat(height - i); // only leading spaces, no trailing
     lines.push(leading + content);
   }
 
