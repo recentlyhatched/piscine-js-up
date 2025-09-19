@@ -1,11 +1,11 @@
 // Matches "hi" anywhere in the string
-const normal = /hi/;
+const normal = /hi/
 
 // Matches "hi" only at the beginning
-const begin = /^hi/;
+const begin = /^hi/
 
 // Matches "hi" only at the end
-const end = /hi$/;
+const end = /hi$/
 
 // Matches exactly "hi" (and nothing else)
-const beginEnd = /^hi$/;
+const beginEnd = /^hi$/
