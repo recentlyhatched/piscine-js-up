@@ -1,58 +1,68 @@
 function firstDayWeek(week, yearStr) {
   const year = parseInt(yearStr, 10);
 
-  // Days in each month (non-leap year by default)
-  const monthDays = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-  // Leap year check
-  function isLeap(y) {
-    return (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+  // Helper: format dd-mm-yyyy
+  function formatDate(d, m, y) {
+    return `${String(d).padStart(2, "0")}-${String(m).padStart(2, "0")}-${String(y).padStart(4, "0")}`;
   }
 
-  // Zeller’s congruence for Gregorian calendar (Monday=1,... Sunday=7)
-  function weekday(y, m, d) {
+  // Manual weekday for Jan 1 (Zeller’s congruence, Gregorian)
+  function weekdayJan1(y) {
+    let d = 1, m = 1;
     if (m < 3) {
       m += 12;
       y -= 1;
     }
     let K = y % 100;
     let J = Math.floor(y / 100);
-    let h = (d + Math.floor(13 * (m + 1) / 5) + K + Math.floor(K / 4) + Math.floor(J / 4) + 5 * J) % 7;
-    // h: 0=Saturday, 1=Sunday, 2=Monday, ...
-    let dow = ((h + 5) % 7) + 1; // 1=Monday,...7=Sunday
+    let h = (d + Math.floor((13 * (m + 1)) / 5) + K + Math.floor(K / 4) + Math.floor(J / 4) + (5 * J)) % 7;
+    // h=0 Saturday, 1=Sunday, 2=Monday...6=Friday
+    let dow = (h + 6) % 7; // Convert → 0=Sunday,1=Monday,...6=Saturday
     return dow;
   }
 
-  // Step 1: Day of week for Jan 1
-  const dowJan1 = weekday(year, 1, 1);
+  // ---------------- Ancient years ----------------
+  if (year < 1000) {
+    let dow = weekdayJan1(year); // 0=Sunday,1=Monday,...
+    let shift = dow === 0 ? 1 : (1 - dow); 
+    let day = 1 + shift;
+    if (day < 1) day = 1; // clamp to Jan 1
+    day += (week - 1) * 7;
+    let month = 1;
 
-  // Step 2: find Monday of week 1
-  let day = 1 + ((dowJan1 === 1) ? 0 : (8 - dowJan1));
-  let month = 1;
+    const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    const daysInMonth = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-  // Step 3: add (week-1)*7 days
-  let daysToAdd = (week - 1) * 7;
-  day += daysToAdd;
-
-  // Adjust day/month for overflow
-  while (true) {
-    let dim = monthDays[month - 1];
-    if (month === 2 && isLeap(year)) dim = 29;
-    if (day <= dim) break;
-    day -= dim;
-    month++;
+    for (let i = 0; i < 12; i++) {
+      if (day > daysInMonth[i]) {
+        day -= daysInMonth[i];
+        month++;
+      } else {
+        break;
+      }
+    }
+    return formatDate(day, month, year);
   }
 
-  // Step 4: If the computed date is before Jan 1, fix it
-  if (week === 1 && day < 1) {
-    day = 1;
-    month = 1;
+  // ---------------- Modern years ----------------
+  let jan1 = new Date(year, 0, 1);
+  let dow = jan1.getDay(); // 0=Sunday,1=Monday,...
+  let diff = (dow === 0 ? 1 : (1 - dow));
+  let mondayOfWeek1 = new Date(year, 0, 1 + diff);
+
+  if (mondayOfWeek1 < jan1) {
+    mondayOfWeek1 = new Date(year, 0, 1); // clamp
   }
 
-  // Format dd-mm-yyyy
-  let dd = String(day).padStart(2, "0");
-  let mm = String(month).padStart(2, "0");
-  let yyyy = String(year).padStart(4, "0");
+  let date = new Date(mondayOfWeek1);
+  date.setDate(date.getDate() + (week - 1) * 7);
 
-  return `${dd}-${mm}-${yyyy}`;
+  return formatDate(date.getDate(), date.getMonth() + 1, date.getFullYear());
 }
+
+// ✅ Tests
+console.log(firstDayWeek(1, "2023"));  // 02-01-2023
+console.log(firstDayWeek(10, "2023")); // 06-03-2023
+console.log(firstDayWeek(1, "2021"));  // 01-01-2021
+console.log(firstDayWeek(2, "0001"));  // 08-01-0001
+
