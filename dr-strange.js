@@ -1,22 +1,26 @@
 function addWeek(date) {
-  const days = [
-    "Sunday", "Monday", "Tuesday",
-    "Wednesday", "Thursday", "Friday", "Saturday"
+  const names = [
+    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+    "secondMonday", "secondTuesday", "secondWednesday", "secondThursday", "secondFriday", "secondSaturday", "secondSunday"
   ];
-  const weekday = date.getUTCDay();
-  const dayName = days[weekday];
-  const dayOfMonth = date.getUTCDate();
 
-  // nth occurrence of this weekday in the month
-  const nth = Math.floor((dayOfMonth - 1) / 7) + 1;
+  // Epoch: 0001-01-01 is Monday
+  const epoch = new Date("0001-01-01T00:00:00Z");
 
-  return nth === 2 ? "second" + dayName : dayName;
+  // Difference in days between date and epoch
+  const diffDays = Math.floor((date - epoch) / (1000 * 60 * 60 * 24));
+
+  // Ensure positive index (modulo 14)
+  const index = ((diffDays % 14) + 14) % 14;
+
+  return names[index];
 }
-
-
 
 function timeTravel({ date, hour, minute, second }) {
-  const newDate = new Date(date.getTime()); // clone
-  newDate.setHours(hour, minute, second);
-  return newDate;
+  const d = new Date(date); // copy
+  d.setHours(hour);
+  d.setMinutes(minute);
+  d.setSeconds(second);
+  return d;
 }
+
