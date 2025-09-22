@@ -1,40 +1,36 @@
 function isValid(date) {
-  if (date instanceof Date) {
-    return !isNaN(date.getTime());
-  }
-  if (typeof date === 'number') {
-    // Treat number as timestamp
-    return !isNaN(new Date(date).getTime());
-  }
-  return false;
+  return date instanceof Date && !isNaN(date.getTime()) ||
+         (typeof date === 'number' && !isNaN(new Date(date).getTime()));
 }
 
 function toDate(d) {
-  return d instanceof Date ? d : new Date(d);
+  if (d instanceof Date) return d;
+  if (typeof d === 'number') return new Date(d);
+  return null; // reject strings, objects, etc.
 }
 
 function isAfter(date1, date2) {
   date1 = toDate(date1);
   date2 = toDate(date2);
-  if (!isValid(date1) || !isValid(date2)) return false;
+  if (!date1 || !date2) return false;
   return date1.getTime() > date2.getTime();
 }
 
 function isBefore(date1, date2) {
   date1 = toDate(date1);
   date2 = toDate(date2);
-  if (!isValid(date1) || !isValid(date2)) return false;
+  if (!date1 || !date2) return false;
   return date1.getTime() < date2.getTime();
 }
 
 function isFuture(date) {
   date = toDate(date);
-  if (!isValid(date)) return false;
+  if (!date) return false;
   return date.getTime() > Date.now();
 }
 
 function isPast(date) {
   date = toDate(date);
-  if (!isValid(date)) return false;
+  if (!date) return false;
   return date.getTime() < Date.now();
 }
