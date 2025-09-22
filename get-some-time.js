@@ -23,8 +23,13 @@ function firstDayWeek(week, yearStr) {
     
     // Ancient years (<1583)
     if (year < 1583) {
+        if (week === 1) {
+            // Week 1 starts on January 1st
+            return formatDate(1, 1, year);
+        }
+        
         let dow = weekdayJan1(year);
-        // Find first Monday of the year
+        // Find first Monday after January 1st
         let firstMonday = 1;
         if (dow === 0) {
             firstMonday = 2; // If Jan 1 is Sunday, first Monday is Jan 2
@@ -33,7 +38,7 @@ function firstDayWeek(week, yearStr) {
         }
         
         // Calculate target date
-        let targetDay = firstMonday + (week - 1) * 7;
+        let targetDay = firstMonday + (week - 2) * 7; // Subtract 1 from week since week 1 is Jan 1
         
         // Handle December dates
         if (targetDay > 31) {
