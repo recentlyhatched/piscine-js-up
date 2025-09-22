@@ -4,21 +4,15 @@ function addWeek(date) {
     "Wednesday", "Thursday", "Friday", "Saturday"
   ];
 
-  // Use UTC-based day so local timezone/time component doesn't shift the day
   const dayName = days[date.getUTCDay()];
+  const dayOfMonth = date.getUTCDate();
 
-  // start at 0001-01-01 (UTC)
-  const startUtc = Date.UTC(1, 0, 1);
-  const dateUtc = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+  // week-of-month: days 1-7 -> week 1, 8-14 -> week 2, 15-21 -> week 3, etc.
+  const weekOfMonth = Math.floor((dayOfMonth - 1) / 7) + 1;
 
-  const msPerDay = 24 * 60 * 60 * 1000;
-  const diffDays = Math.floor((dateUtc - startUtc) / msPerDay);
-  const weekNumber = Math.floor(diffDays / 7) + 1;
-
-  // Only the second week gets the "second" prefix
-  if (weekNumber === 2) return "second" + dayName;
-  return dayName;
+  return (weekOfMonth === 2) ? "second" + dayName : dayName;
 }
+
 
 
 function timeTravel({ date, hour, minute, second }) {
