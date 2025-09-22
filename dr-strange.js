@@ -3,14 +3,14 @@ function addWeek(date) {
     "Sunday", "Monday", "Tuesday",
     "Wednesday", "Thursday", "Friday", "Saturday"
   ];
-
-  const dayName = days[date.getUTCDay()];
+  const weekday = date.getUTCDay();
+  const dayName = days[weekday];
   const dayOfMonth = date.getUTCDate();
 
-  // week groups: 1..7 -> week 1, 8..14 -> week 2, etc.
-  const weekOfMonth = Math.ceil(dayOfMonth / 7);
+  // nth occurrence of this weekday in the month
+  const nth = Math.floor((dayOfMonth - 1) / 7) + 1;
 
-  return weekOfMonth === 2 ? "second" + dayName : dayName;
+  return nth === 2 ? "second" + dayName : dayName;
 }
 
 
