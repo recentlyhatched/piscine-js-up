@@ -5,25 +5,23 @@ function firstDayWeek(weekNumber, yearStr) {
   const monthDays = [31, isLeap(year) ? 29 : 28, 31, 30, 31, 30, 31,
                      31, 30, 31, 30, 31];
 
-  // Day of week for Jan 1 (Monday=1, Sunday=7)
   const jan1 = new Date(Date.UTC(year, 0, 1));
-  const weekday = jan1.getUTCDay() === 0 ? 7 : jan1.getUTCDay();
+  const weekday = jan1.getUTCDay() === 0 ? 7 : jan1.getUTCDay(); // Monday=1..Sunday=7
 
-  // Monday of week 1 (clamp to Jan 1 if Monday < Jan 1)
-  let firstMonday = 1 - (weekday - 1);
-  if (firstMonday < 1) firstMonday = 1;
+  const daysToMonday = (8 - weekday) % 7;
+  const firstMonday = 1 + daysToMonday; // first Monday of week 1
 
-  // Day of year for target week
-  let dayOfYear = firstMonday + (weekNumber - 1) * 7;
+  const dayOfYear = firstMonday + (weekNumber - 1) * 7;
 
-  // Convert dayOfYear to month/day
+  // Convert dayOfYear → month/day
   let month = 0;
-  while (month < 12 && dayOfYear > monthDays[month]) {
-    dayOfYear -= monthDays[month];
+  let day = dayOfYear;
+  while (month < 12 && day > monthDays[month]) {
+    day -= monthDays[month];
     month++;
   }
 
-  return formatDate(dayOfYear, month + 1, year);
+  return formatDate(day, month + 1, year);
 }
 
 function isLeap(year) {
