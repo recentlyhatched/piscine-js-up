@@ -1,37 +1,36 @@
-function firstDayWeek(weekNumber, yearStr) {
-  const year = Number(yearStr);
-  if (weekNumber < 1 || weekNumber > 53) return null;
+function firstDayWeek(weekNumber, year) {
+    // Validate inputs
+    if (!Number.isInteger(weekNumber) || weekNumber < 1 || weekNumber > 53) {
+        throw new Error('Week must be a number between 1 and 53');
+    }
+    
+    if (!/^\d{4}$/.test(year)) {
+        throw new Error('Year must be a valid 4-digit number');
+    }
 
-  const monthDays = [
-    31,
-    isLeap(year) ? 29 : 28,
-    31, 30, 31, 30,
-    31, 31, 30, 31, 30, 31
-  ];
-
-  // Week 1 = Jan 1
-  let dayOfYear = 1 + (weekNumber - 1) * 7;
-
-  // Convert dayOfYear → month/day
-  let month = 0;
-  let day = dayOfYear;
-  while (month < 12 && day > monthDays[month]) {
-    day -= monthDays[month];
-    month++;
-  }
-
-  return formatDate(day, month + 1, year);
+    // Create a date object for January 1st of the given year
+    let date = new Date(year, 0, 1);
+    
+    // Find the first Monday of the year
+    if (date.getDay() !== 1) {
+        const daysToAdd = date.getDay() === 0 ? 1 : 8 - date.getDay();
+        date.setDate(date.getDate() + daysToAdd);
+    }
+    
+    // Calculate the target week
+    const weeksToAdd = weekNumber - 1;
+    date.setDate(date.getDate() + (weeksToAdd * 7));
+    
+    // Ensure we haven't crossed into next year
+    if (date.getFullYear() > parseInt(year)) {
+        return `${String(new Date(year, 0, 1).getDate()).padStart(2, '0')}-${String(new Date(year, 0, 1).getMonth() + 1).padStart(2, '0')}-${year}`;
+    }
+    
+    // Format the result
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    return `${day}-${month}-${year}`;
 }
 
-function isLeap(year) {
-  return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-}
-
-function formatDate(day, month, year) {
-  const dd = String(day).padStart(2, '0');
-  const mm = String(month).padStart(2, '0');
-  const yyyy = String(year).padStart(4, '0');
-  return `${dd}-${mm}-${yyyy}`;
-}
 
 console.log(firstDayWeek(52, '1000'))
