@@ -9,13 +9,10 @@ function firstDayWeek(weekNumber, yearStr) {
     31, 31, 30, 31, 30, 31
   ];
 
-  // Week 1 always starts at Jan 1
-  if (weekNumber === 1) return formatDate(1, 1, year);
-
-  // Weeks >1: day of year
+  // Week 1: always Jan 1
   let dayOfYear = 1 + (weekNumber - 1) * 7;
 
-  // Convert dayOfYear to month/day
+  // Convert dayOfYear → month/day
   let month = 0;
   let day = dayOfYear;
   while (month < 12 && day > monthDays[month]) {
