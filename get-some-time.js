@@ -33,3 +33,5 @@ function formatDate(day, month, year) {
   const yyyy = String(year).padStart(4, '0');
   return `${dd}-${mm}-${yyyy}`;
 }
+
+console.log(firstDayWeek(52, '1000'))
