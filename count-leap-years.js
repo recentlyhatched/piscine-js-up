@@ -1,7 +1,9 @@
 function countLeapYears(date) {
-    const year = date.getFullYear();
-    // count leap years using the rules:
-    // divisible by 4, but not 100 unless divisible by 400
-    const leapYears = Math.floor(year / 4) - Math.floor(year / 100) + Math.floor(year / 400);
-    return leapYears;
+    let years = 0;
+    for (let year = 1; year < date.getFullYear(); year++) {
+        if (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)) {
+            years++;
+        }
+    }
+    return years;
 }
