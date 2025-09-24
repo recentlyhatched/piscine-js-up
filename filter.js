@@ -1,5 +1,5 @@
 function filter(arr, callback) {
-  const result;
+  const result = [];
   for (let i = 0; i < arr.length; i++) {
     if (callback(arr[i], i, arr)) {
       result.push(arr[i]);
@@ -9,7 +9,7 @@ function filter(arr, callback) {
 }
 
 function reject(arr, callback) {
-  const result;
+  const result = [];
   for (let i = 0; i < arr.length; i++) {
     if (!callback(arr[i], i, arr)) {
       result.push(arr[i]);
@@ -19,8 +19,8 @@ function reject(arr, callback) {
 }
 
 function partition(arr, callback) {
-  const truthy;
-  const falsy;
+  const truthy = [];
+  const falsy = [];
   
   for (let i = 0; i < arr.length; i++) {
     if (callback(arr[i], i, arr)) {
