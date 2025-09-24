@@ -22,7 +22,6 @@ function reduce(arr, fn) {
 }
 
 function reduceRight(arr, fn) {
-  if (arr.length === 0) throw new Error("Array must have at least one element");
   
   let acc = arr[arr.length - 1];
   for (let i = arr.length - 2; i >= 0; i--) {
