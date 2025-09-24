@@ -1,5 +1,8 @@
-function adder(arr) {
-    return arr.reduce((total, num) => total + num, 0)
+function adder(arr, value) {
+    return arr.reduce(
+        (acc, item) => acc + item,
+        value === undefined ? 0 : value
+    );
 }
 
 // if even, multiply; if odd, add
