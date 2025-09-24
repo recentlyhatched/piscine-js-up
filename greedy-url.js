@@ -1,6 +1,6 @@
 // get all URLs
 function getURL(dataSet) {
-  const urlRegex = /\bhttps?:\/\/[^\s]+/g; // global search for https or http
+  const urlRegex = /\bhttps?:\/\/[A-Za-z0-9\-._~:/?#[\]@!$&'()*+,;=%]+/g; // global search for https or http
   const matches = dataSet.match(urlRegex);
   return matches || [];
 }
