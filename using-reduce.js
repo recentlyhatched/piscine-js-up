@@ -6,14 +6,17 @@ function adder(arr, value) {
 }
 
 // if even, multiply; if odd, add
-function sumOrMul(arr) {
-    return arr.reduce((total, num) => {
-        if(num % 2 === 0) {
-            return total*num
-        } else {
-            return total + num
-        }
-    })
+function sumOrMul(arr, value) {
+    return arr.reduce(
+        (acc, item) => {
+            if (item % 2 === 0) {
+                return acc * item;
+            } else {
+                return acc + item;
+            }
+        },
+        value === undefined ? 0 : value
+    );
 }
 
 function funcExec(funcs, initialValue) {
