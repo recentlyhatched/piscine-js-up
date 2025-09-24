@@ -1,7 +1,9 @@
 function currify(fn) {
-    return function (a) {
-        return function (b) {
-            return fn(a, b)
-        }
+  return function curried(...args) { // spread operator
+    if (args.length >= fn.length) {
+      return fn(...args);
+    } else {
+      return (...more) => curried(...args, ...more);
     }
+  };
 }
