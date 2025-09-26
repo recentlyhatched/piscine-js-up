@@ -1,104 +1,108 @@
 import { gossips } from './gossip-grid.data.js'
 
 export const grid = () => {
-  // --- RANGES AT TOP ---
+  // 1. Create ranges container and sliders + labels
   const rangesDiv = document.createElement('div')
   rangesDiv.className = 'ranges'
-
-  // Width slider (container width)
-  const widthRange = document.createElement('input')
-  widthRange.type = 'range'
-  widthRange.id = 'width'
-  widthRange.className = 'range'
-  widthRange.min = 200
-  widthRange.max = 800
-  widthRange.value = 600
-  rangesDiv.appendChild(widthRange)
-
-  // Text size slider (font size of gossips)
-  const textSizeRange = document.createElement('input')
-  textSizeRange.type = 'range'
-  textSizeRange.id = 'fontSize'
-  textSizeRange.className = 'range'
-  textSizeRange.min = 20
-  textSizeRange.max = 40
-  textSizeRange.value = 20
-  rangesDiv.appendChild(textSizeRange)
-
-  // Background slider (lightness of gossips)
-  const backgroundRange = document.createElement('input')
-  backgroundRange.type = 'range'
-  backgroundRange.id = 'background'
-  backgroundRange.className = 'range'
-  backgroundRange.min = 20
-  backgroundRange.max = 75
-  backgroundRange.value = 75
-  rangesDiv.appendChild(backgroundRange)
-
   document.body.appendChild(rangesDiv)
 
-  // --- GOSSIP CONTAINER ---
+  function makeLabeledRange({ id, min, max, initial, unit, labelText }) {
+    const wrapper = document.createElement('div')
+    wrapper.className = 'range-wrapper'
+
+    const label = document.createElement('label')
+    label.htmlFor = id
+    label.textContent = `${labelText}: `
+
+    const spanVal = document.createElement('span')
+    spanVal.className = 'range-value'
+    spanVal.textContent = `${initial}${unit}`
+    label.appendChild(spanVal)
+
+    const input = document.createElement('input')
+    input.type = 'range'
+    input.id = id
+    input.className = 'range'
+    input.min = min
+    input.max = max
+    input.value = initial
+
+    input.addEventListener('input', () => {
+      spanVal.textContent = `${input.value}${unit}`
+      applyStyles()
+    })
+
+    wrapper.appendChild(label)
+    wrapper.appendChild(input)
+    return { wrapper, input }
+  }
+
+  const widthCtrl = makeLabeledRange({ id: 'width', min: 200, max: 800, initial: 600, unit: 'px', labelText: 'Width' })
+  const fontSizeCtrl = makeLabeledRange({ id: 'fontSize', min: 20, max: 40, initial: 20, unit: 'px', labelText: 'Text size' })
+  const bgCtrl = makeLabeledRange({ id: 'background', min: 20, max: 75, initial: 75, unit: '%', labelText: 'Background' })
+
+  rangesDiv.append(widthCtrl.wrapper, fontSizeCtrl.wrapper, bgCtrl.wrapper)
+
+  // 2. Gossip container
   const container = document.createElement('div')
   container.className = 'gossip-grid'
   document.body.appendChild(container)
 
-  // --- FORM CARD ---
+  // 3. Form card at first position
   const formCard = document.createElement('div')
   formCard.className = 'gossip'
-
   const form = document.createElement('form')
-
   const textarea = document.createElement('textarea')
-  textarea.placeholder = 'Share your gossip...'
-  form.appendChild(textarea)
-
   const button = document.createElement('button')
   button.type = 'submit'
   button.textContent = 'Share gossip!'
-  form.appendChild(button)
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault()
-    if (textarea.value.trim() === '') return
-    addGossip(textarea.value.trim())
-    textarea.value = ''
-  })
-
+  form.append(textarea, button)
   formCard.appendChild(form)
   container.appendChild(formCard)
 
-  // --- FUNCTION TO ADD GOSSIP ---
-  const addGossip = (text) => {
-    const gossipCard = document.createElement('div')
-    gossipCard.className = 'gossip'
-    gossipCard.textContent = text
-    container.appendChild(gossipCard)
+  form.addEventListener('submit', event => {
+    event.preventDefault()
+    const text = textarea.value.trim()
+    if (!text) return
+    // insert new gossip **after** the form
+    const newCard = createGossipCard(text)
+    container.insertBefore(newCard, container.children[1])
+    textarea.value = ''
     applyStyles()
+  })
+
+  // 4. Create all initial gossip cards
+  gossips.forEach(g => {
+    const card = createGossipCard(g)
+    container.appendChild(card)
+  })
+
+  // helper
+  function createGossipCard(text) {
+    const card = document.createElement('div')
+    card.className = 'gossip'
+    card.textContent = text
+    return card
   }
 
-  // Add initial gossips
-  gossips.forEach(addGossip)
+  // 5. applyStyles function
+  function applyStyles() {
+    container.style.width = `${widthCtrl.input.value}px`
+    container.style.margin = '0 auto'
 
-  // --- APPLY STYLES ---
-  const applyStyles = () => {
-    // container width
-    container.style.width = `${widthRange.value}px`
-    container.style.margin = '0 auto' // keep centered
-
-    // update gossip cards
     const cards = container.querySelectorAll('.gossip')
     cards.forEach((card, index) => {
-      if (index === 0) return // skip form card
-      card.style.fontSize = `${textSizeRange.value}px`
-      card.style.background = `hsl(280, 50%, ${backgroundRange.value}%)`
+      if (index === 0) {
+        // styling for form card maybe slightly different
+        card.style.background = ''  // or default
+        return
+      }
+      card.style.fontSize = `${fontSizeCtrl.input.value}px`
+      card.style.background = `hsl(280, 50%, ${bgCtrl.input.value}%)`
     })
   }
 
-  // Event listeners for sliders
-  widthRange.addEventListener('input', applyStyles)
-  textSizeRange.addEventListener('input', applyStyles)
-  backgroundRange.addEventListener('input', applyStyles)
-
-  // Initial apply
+  // initialize
   applyStyles()
 }
