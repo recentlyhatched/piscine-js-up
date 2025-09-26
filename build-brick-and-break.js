@@ -1,4 +1,4 @@
-// 1. Build the tower
+// build the tower
 export const build = (count) => {
   let i = 1;
   const interval = setInterval(() => {
@@ -21,7 +21,7 @@ export const build = (count) => {
   }, 100);
 };
 
-// 2. Repair bricks
+// repair bricks
 export const repair = (...ids) => {
   ids.forEach((id) => {
     const brick = document.getElementById(id);
@@ -35,7 +35,7 @@ export const repair = (...ids) => {
   });
 };
 
-// 3. Destroy last brick
+// destroy last brick
 export const destroy = () => {
   const bricks = document.querySelectorAll("div[id^='brick-']");
   const lastBrick = bricks[bricks.length - 1];
