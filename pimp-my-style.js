@@ -12,7 +12,7 @@ export const pimp = () => {
 
     if (index === styles.length) {
       adding = false
-      btn.textContent = 'unpimp my style'
+      btn.classList.add('unpimp')
     }
   } else {
     index--
@@ -20,7 +20,7 @@ export const pimp = () => {
 
     if (index === 0) {
       adding = true
-      btn.textContent = 'pimp'
+      btn.classList.remove('unpimp')
     }
   }
 }
