@@ -58,7 +58,7 @@ export const pick = () => {
     const hsl = `hsl(${hue}, 50%, ${luminosity}%)`;
 
     // Update body background
-    document.body.style.backgroundColor = hsl;
+    document.body.style.background = hsl;
 
     // Update displays
     hslDiv.textContent = hsl;
