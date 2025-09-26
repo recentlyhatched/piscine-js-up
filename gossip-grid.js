@@ -98,28 +98,23 @@ export const grid = () => {
     textarea.value = '';
   });
 
-  // --- apply styles (width, font-size, background) ---
-  function applyStyles() {
-    // Apply width to all gossip cards (including the form card)
-    const cards = container.querySelectorAll('.gossip');
-    cards.forEach((card) => {
-      card.style.width = `${widthCtrl.input.value}px`;
-    });
+function applyStyles() {
+  const cards = container.querySelectorAll('.gossip');
+  cards.forEach((card) => {
+    card.style.width = `${widthCtrl.input.value}px`;
+  });
 
-    // Apply font size and background to gossip posts (skip the form's internal layout)
-    cards.forEach((card) => {
-      // If this card contains the form element, don't overwrite its internal layout
-      if (card.querySelector('form')) {
-        // optionally set width only (already set above), skip font/background
-        return;
-      }
-      card.style.fontSize = `${fontSizeCtrl.input.value}px`;
-      card.style.background = `hsl(280, 50%, ${bgCtrl.input.value}%)`;
-    });
+  // Apply font size + background only to gossip posts (skip form)
+  cards.forEach((card) => {
+    if (card.querySelector('form')) return;
+    card.style.fontSize = `${fontSizeCtrl.input.value}px`;
+    card.style.background = `hsl(280, 50%, ${bgCtrl.input.value}%)`;
+  });
 
-    // Keep the container centered (optional)
+
+
     container.style.width = `${widthCtrl.input.value}px`;
-    container.style.margin = '0 auto';
+container.style.margin = '0 auto';
   }
 
   // Initialize visuals
