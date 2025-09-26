@@ -25,8 +25,6 @@ export const generateColdShades = () => {
 export const choseShade = (shade) => {
   const divs = document.querySelectorAll('div');
   divs.forEach(div => {
-    if (div.textContent !== shade) {
-      div.className = shade;
-    }
+    div.className = shade; // update all divs regardless
   });
 };
