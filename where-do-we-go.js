@@ -1,81 +1,75 @@
-import { places } from './where-do-we-go.data.js';
+import { places } from "./where-do-we-go.data.js";
 
-export const explore = () => {
-  // Sort places north to south
-  const sortedPlaces = [...places].sort((a, b) => b.latitude - a.latitude);
+let previousScroll = window.scrollY;
 
-  // Create sections for each place with proper public image URL
-  sortedPlaces.forEach(place => {
-    const section = document.createElement('section');
-    section.style.height = '100vh';
-    section.style.backgroundImage = `url(https://public.01-edu.org/subjects/where-do-we-go/where-do-we-go_images/${place.name.toLowerCase()}.jpg)`;
-    section.style.backgroundSize = 'cover';
-    section.style.backgroundPosition = 'center';
+// Create location indicator
+const location = document.createElement("a");
+location.className = "location";
+document.body.appendChild(location);
+
+// Create compass
+const compass = document.createElement("div");
+compass.className = "direction";
+document.body.appendChild(compass);
+
+// Main function
+function explore() {
+  // Sort places from north to south
+  places.sort(compareCoordinates);
+
+  // Create full-screen sections
+  places.forEach((place) => {
+    const section = document.createElement("section");
+    const imageName = place.name.toLowerCase().replace(/ /g, "-").split(",")[0];
+    section.style.background = `url('./where-do-we-go_images/${imageName}.jpg') center/cover no-repeat`;
+    section.style.width = "100%";
+    section.style.height = "100vh";
     document.body.appendChild(section);
   });
 
-  // Location indicator
-  const locationIndicator = document.createElement('a');
-  locationIndicator.className = 'location';
-  locationIndicator.style.position = 'fixed';
-  locationIndicator.style.top = '50%';
-  locationIndicator.style.left = '50%';
-  locationIndicator.style.transform = 'translate(-50%, -50%)';
-  locationIndicator.style.whiteSpace = 'pre';
-  locationIndicator.style.textAlign = 'center';
-  locationIndicator.style.zIndex = '10';
-  locationIndicator.style.fontSize = '1.2rem';
-  locationIndicator.style.background = 'rgba(0,0,0,0.4)';
-  locationIndicator.style.padding = '0.5em 1em';
-  locationIndicator.style.borderRadius = '0.5em';
-  locationIndicator.style.color = sortedPlaces[0].color;
-  locationIndicator.href = `https://www.google.com/maps?q=${sortedPlaces[0].latitude},${sortedPlaces[0].longitude}`;
-  locationIndicator.target = '_blank';
-  locationIndicator.textContent = `${sortedPlaces[0].name}\n${sortedPlaces[0].latitude}, ${sortedPlaces[0].longitude}`;
-  document.body.appendChild(locationIndicator);
+  // Initial location update
+  updateLocation();
+}
 
-  // Compass
-  const compass = document.createElement('div');
-  compass.className = 'direction';
-  compass.style.position = 'fixed';
-  compass.style.top = '1em';
-  compass.style.left = '50%';
-  compass.style.transform = 'translateX(-50%)';
-  compass.style.fontSize = '2rem';
-  compass.style.zIndex = '10';
-  compass.style.background = 'rgba(0,0,0,0.3)';
-  compass.style.padding = '0.2em 0.5em';
-  compass.style.borderRadius = '0.3em';
-  document.body.appendChild(compass);
+// Scroll listener
+document.addEventListener("scroll", () => {
+  updateLocation();
+  compass.textContent = previousScroll > window.scrollY ? "N" : "S";
+  previousScroll = window.scrollY;
+});
 
-  // Scroll tracking
-  let lastScrollY = window.scrollY;
+// Update location indicator
+function updateLocation() {
+  const midScroll = window.scrollY + window.innerHeight / 2;
+  const index = Math.floor(midScroll / window.innerHeight);
+  const place = places[index];
 
-  const updateLocation = () => {
-    const midY = window.innerHeight / 2 + window.scrollY;
+  location.textContent = `${place.name}\n${place.coordinates}`;
+  location.style.color = place.color;
+  location.href = `https://www.google.com/maps/place/${encodeCoordinates(place.coordinates)}/`;
+  location.target = "_blank";
+}
 
-    let currentPlace = sortedPlaces[0];
-    const sections = document.querySelectorAll('section');
-    sections.forEach((sec, i) => {
-      if (midY >= sec.offsetTop) {
-        currentPlace = sortedPlaces[i];
-      }
-    });
+// Encode coordinates for Google Maps
+function encodeCoordinates(coords) {
+  return coords.replace(/ /g, "%20").replace(/°/g, "%C2%B0").replace(/"/g, "%22");
+}
 
-    // Update location indicator
-    locationIndicator.textContent = `${currentPlace.name}\n${currentPlace.latitude}, ${currentPlace.longitude}`;
-    locationIndicator.style.color = currentPlace.color;
-    locationIndicator.href = `https://www.google.com/maps?q=${currentPlace.latitude},${currentPlace.longitude}`;
-
-    // Update compass
-    if (window.scrollY > lastScrollY) {
-      compass.textContent = 'S';
-    } else if (window.scrollY < lastScrollY) {
-      compass.textContent = 'N';
-    }
-    lastScrollY = window.scrollY;
+// Compare latitude for sorting
+function compareCoordinates(a, b) {
+  const parse = (coord) => {
+    const [deg, minSec] = coord.split("°");
+    const [min, secDir] = minSec.split("'");
+    const [sec, dir] = secDir.split('"');
+    const sign = dir === "S" ? -1 : 1;
+    return [deg, min, sec].map(Number).map(n => n * sign);
   };
 
-  window.addEventListener('scroll', updateLocation);
-  updateLocation();
-};
+  const [aDeg, aMin, aSec] = parse(a.coordinates.split(" ")[0]);
+  const [bDeg, bMin, bSec] = parse(b.coordinates.split(" ")[0]);
+
+  return bDeg - aDeg || bMin - aMin || bSec - aSec;
+}
+
+export { explore };
+
