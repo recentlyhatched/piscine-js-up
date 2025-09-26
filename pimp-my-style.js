@@ -5,32 +5,31 @@ let removing = false;
 
 export const pimp = () => {
   const btn = document.querySelector(".button");
-
   if (!btn) return;
 
   if (!removing) {
-    // still adding styles
+    // ADDING phase
     btn.classList.add(styles[step]);
     step++;
 
-    // when all styles added, next click will start removing
     if (step === styles.length) {
+      // next click will start removing
       removing = true;
     }
   } else {
-    // first time we remove, turn on unpimp
+    // REMOVING phase
     if (step === styles.length) {
-      btn.classList.toggle("unpimp", true);
+      // first removal: toggle unpimp on
+      btn.classList.add("unpimp");
     }
 
-    // remove last style
     step--;
     btn.classList.remove(styles[step]);
 
-    // finished removing all styles
     if (step === 0) {
+      // finished removing: toggle unpimp off and reset
+      btn.classList.remove("unpimp");
       removing = false;
-      btn.classList.toggle("unpimp", false);
     }
   }
 };
