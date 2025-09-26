@@ -4,6 +4,7 @@ export const grid = () => {
   // --- RANGES UI (top) ---
   const rangesDiv = document.createElement('div');
   rangesDiv.className = 'ranges';
+  document.body.appendChild(rangesDiv);
 
   const makeLabeledRange = (id, min, max, initial, unit, labelText) => {
     const wrapper = document.createElement('div');
@@ -41,12 +42,10 @@ export const grid = () => {
   const bgCtrl = makeLabeledRange('background', 20, 75, 75, '%', 'Background');
 
   rangesDiv.append(widthCtrl.wrapper, fontSizeCtrl.wrapper, bgCtrl.wrapper);
-  document.body.appendChild(rangesDiv);
 
   // --- GOSSIP CONTAINER ---
   const container = document.createElement('div');
   container.className = 'gossip-grid';
-  container.style.margin = '20px auto';
   document.body.appendChild(container);
 
   // --- FORM CARD (first .gossip) ---
@@ -73,16 +72,9 @@ export const grid = () => {
   };
 
   // --- Add initial gossips AFTER the form, keeping order ---
-  const addInitialGossips = () => {
-    gossips.forEach((g) => {
-      const card = createGossipCard(g);
-      container.appendChild(card); // append after form
-    });
-  };
+  gossips.forEach((g) => container.appendChild(createGossipCard(g)));
 
-  addInitialGossips();
-
-  // --- function to insert a new gossip BEFORE the form (so it becomes first) ---
+  // --- function to insert a new gossip BEFORE the form (becomes first) ---
   const addNewGossipAtTop = (text) => {
     const newCard = createGossipCard(text);
     container.insertBefore(newCard, container.firstChild);
@@ -98,23 +90,21 @@ export const grid = () => {
     textarea.value = '';
   });
 
-function applyStyles() {
-  const cards = container.querySelectorAll('.gossip');
-  cards.forEach((card) => {
-    card.style.width = `${widthCtrl.input.value}px`;
-  });
+  // --- apply styles ---
+  function applyStyles() {
+    const cards = container.querySelectorAll('.gossip');
+    cards.forEach((card) => {
+      // Ensure computed width matches slider exactly
+      card.style.boxSizing = 'border-box';
+      card.style.display = 'block';
+      card.style.width = `${widthCtrl.input.value}px`;
 
-  // Apply font size + background only to gossip posts (skip form)
-  cards.forEach((card) => {
-    if (card.querySelector('form')) return;
-    card.style.fontSize = `${fontSizeCtrl.input.value}px`;
-    card.style.background = `hsl(280, 50%, ${bgCtrl.input.value}%)`;
-  });
-
-
-
-    container.style.width = `${widthCtrl.input.value}px`;
-container.style.margin = '0 auto';
+      // Font size and background only for gossip posts (skip form internals)
+      if (!card.querySelector('form')) {
+        card.style.fontSize = `${fontSizeCtrl.input.value}px`;
+        card.style.background = `hsl(280, 50%, ${bgCtrl.input.value}%)`;
+      }
+    });
   }
 
   // Initialize visuals
