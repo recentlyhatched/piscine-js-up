@@ -8,25 +8,29 @@ export const pimp = () => {
 
   if (!btn) return;
 
-  // start removing when we've added all styles
-  if (step === styles.length) {
-    removing = true;
-    btn.classList.toggle("unpimp", true); // turn unpimp on
-  }
-
-  // finished removing, reset
-  if (removing && step === 0) {
-    removing = false;
-    btn.classList.toggle("unpimp", false); // turn unpimp off
-  }
-
   if (!removing) {
-    // add next style
+    // still adding styles
     btn.classList.add(styles[step]);
     step++;
+
+    // when all styles added, next click will start removing
+    if (step === styles.length) {
+      removing = true;
+    }
   } else {
-    // remove last style (LIFO)
+    // first time we remove, turn on unpimp
+    if (step === styles.length) {
+      btn.classList.toggle("unpimp", true);
+    }
+
+    // remove last style
     step--;
     btn.classList.remove(styles[step]);
+
+    // finished removing all styles
+    if (step === 0) {
+      removing = false;
+      btn.classList.toggle("unpimp", false);
+    }
   }
 };
