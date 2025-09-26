@@ -1,17 +1,26 @@
-import { styles } from "./pimp-my-style.data.js"
+import { styles } from './pimp-my-style.data.js'
+
+let index = 0
+let adding = true
 
 export const pimp = () => {
-  const button = document.querySelector(".button");
-  const applied = styles.filter(cls => button.classList.contains(cls));
-  const nextIndex = applied.length;
+  const btn = document.querySelector('button')
 
-  // If still adding styles
-  if (nextIndex < styles.length) {
-    button.classList.add(styles[nextIndex]);
-    button.classList.remove("unpimp"); // stop unpimping while adding
+  if (adding) {
+    btn.classList.add(styles[index])
+    index++
+
+    if (index === styles.length) {
+      adding = false
+      btn.textContent = 'unpimp my style'
+    }
   } else {
-    // LIFO: remove last added class
-    button.classList.remove(applied[applied.length - 1]);
-    button.classList.add("unpimp");
+    index--
+    btn.classList.remove(styles[index])
+
+    if (index === 0) {
+      adding = true
+      btn.textContent = 'pimp'
+    }
   }
-};
+}
