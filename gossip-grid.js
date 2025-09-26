@@ -1,112 +1,85 @@
 import { gossips } from './gossip-grid.data.js';
 
+"use strict";
+
 export const grid = () => {
-  // --- RANGES UI (top) ---
-  const rangesDiv = document.createElement('div');
-  rangesDiv.className = 'ranges';
-  document.body.appendChild(rangesDiv);
+    const body = document.querySelector('body')
+    const rangesDiv = document.createElement('div')
+    const widthInput = document.createElement('input')
+    const fontSizeInput = document.createElement('input')
+    const backgroundInput = document.createElement('input')
+    widthInput.type = "range"
+    fontSizeInput.type = "range"
+    backgroundInput.type = "range"
+    widthInput.id = "width"
+    fontSizeInput.id = "fontSize"
+    backgroundInput.id = "background"
+    widthInput.setAttribute('min', "200")
+    widthInput.setAttribute('max', "800")
+    fontSizeInput.setAttribute('min', "20")
+    fontSizeInput.setAttribute('max', "40")
+    backgroundInput.setAttribute('min', "20")
+    backgroundInput.setAttribute('max', "75")
+    
+    rangesDiv.classList.add('ranges')
+    widthInput.classList.add("range")
+    fontSizeInput.classList.add("range")
+    backgroundInput.classList.add("range")
+    rangesDiv.append(widthInput)
+    rangesDiv.append(fontSizeInput)
+    rangesDiv.append(backgroundInput)
+    body.append(rangesDiv)
 
-  const makeLabeledRange = (id, min, max, initial, unit, labelText) => {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'range-wrapper';
+    const gossipForm = document.createElement('form')
+    gossipForm.classList.add("gossip")
+    const gossipText = document.createElement('textarea')
+    gossipText.placeholder = "Got a gossip to share?"
+    const gossipSubmit = document.createElement('button')
+    gossipSubmit.textContent = "Share gossip!"
+    gossipSubmit.type = "submit"
+    gossipForm.append(gossipText)
+    gossipForm.append(gossipSubmit)
+    body.append(gossipForm)
 
-    const label = document.createElement('label');
-    label.htmlFor = id;
-    label.textContent = `${labelText}: `;
+    gossips.map(gossip => {
+        const gossipDiv = document.createElement('div')
+        gossipDiv.classList.add("gossip")
+        gossipDiv.textContent = gossip
+        body.append(gossipDiv)
+    })
 
-    const spanVal = document.createElement('span');
-    spanVal.className = 'range-value';
-    spanVal.textContent = `${initial}${unit}`;
-    label.appendChild(spanVal);
+    gossipSubmit.addEventListener('click', function(e) {
+        e.preventDefault()
+        if (!gossipText.value) return
+        const gossipDiv = document.createElement('div')
+        gossipDiv.classList.add("gossip")
+        gossipDiv.classList.add('fade-in')
+        gossipDiv.textContent = gossipText.value
+        gossipDiv.style.width = gossipForm.style.width
+        gossipDiv.style.background = gossipForm.style.background
+        gossipDiv.style.fontSize = gossipForm.style.fontSize
+        gossipText.value = ""
+        gossipForm.insertAdjacentElement('afterend', gossipDiv)
+    })
 
-    const input = document.createElement('input');
-    input.type = 'range';
-    input.id = id;
-    input.className = 'range';
-    input.min = min;
-    input.max = max;
-    input.value = initial;
+    widthInput.addEventListener('input', function() {
+        const gossipCards = document.getElementsByClassName('gossip')
+        for (const card of gossipCards) {
+            card.style.width = widthInput.value + "px"
+        }
+    })
 
-    input.addEventListener('input', () => {
-      spanVal.textContent = `${input.value}${unit}`;
-      applyStyles();
-    });
+    fontSizeInput.addEventListener('input', function() {
+        const gossipCards = document.getElementsByClassName('gossip')
+        for (const card of gossipCards) {
+            card.style.fontSize = fontSizeInput.value + "px"
+        }
+    })
 
-    wrapper.appendChild(label);
-    wrapper.appendChild(input);
-    return { wrapper, input, spanVal };
-  };
-
-  const widthCtrl = makeLabeledRange('width', 200, 800, 600, 'px', 'Width');
-  const fontSizeCtrl = makeLabeledRange('fontSize', 20, 40, 20, 'px', 'Text size');
-  const bgCtrl = makeLabeledRange('background', 20, 75, 75, '%', 'Background');
-
-  rangesDiv.append(widthCtrl.wrapper, fontSizeCtrl.wrapper, bgCtrl.wrapper);
-
-  // --- GOSSIP CONTAINER ---
-  const container = document.createElement('div');
-  container.className = 'gossip-grid';
-  document.body.appendChild(container);
-
-  // --- FORM CARD (first .gossip) ---
-  const formCard = document.createElement('div');
-  formCard.className = 'gossip';
-
-  const form = document.createElement('form');
-  const textarea = document.createElement('textarea');
-  textarea.placeholder = 'Share your gossip...';
-  const submitBtn = document.createElement('button');
-  submitBtn.type = 'submit';
-  submitBtn.textContent = 'Share gossip!';
-
-  form.append(textarea, submitBtn);
-  formCard.appendChild(form);
-  container.appendChild(formCard); // form is first child
-
-  // --- helper to create a gossip card ---
-  const createGossipCard = (text) => {
-    const card = document.createElement('div');
-    card.className = 'gossip';
-    card.textContent = text;
-    return card;
-  };
-
-  // --- Add initial gossips AFTER the form, keeping order ---
-  gossips.forEach((g) => container.appendChild(createGossipCard(g)));
-
-  // --- function to insert a new gossip BEFORE the form (becomes first) ---
-  const addNewGossipAtTop = (text) => {
-    const newCard = createGossipCard(text);
-    container.insertBefore(newCard, container.firstChild);
-    applyStyles();
-  };
-
-  // --- Form submit handler ---
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const txt = textarea.value.trim();
-    if (!txt) return;
-    addNewGossipAtTop(txt);
-    textarea.value = '';
-  });
-
-  // --- apply styles ---
-  function applyStyles() {
-    const cards = container.querySelectorAll('.gossip');
-    cards.forEach((card) => {
-      // Ensure computed width matches slider exactly
-      card.style.boxSizing = 'border-box';
-      card.style.display = 'block';
-      card.style.width = `${widthCtrl.input.value}px`;
-
-      // Font size and background only for gossip posts (skip form internals)
-      if (!card.querySelector('form')) {
-        card.style.fontSize = `${fontSizeCtrl.input.value}px`;
-        card.style.background = `hsl(280, 50%, ${bgCtrl.input.value}%)`;
-      }
-    });
-  }
-
-  // Initialize visuals
-  applyStyles();
-};
+    backgroundInput.addEventListener('input', function() {
+        const gossipCards = document.getElementsByClassName('gossip')
+        for (const card of gossipCards) {
+            card.style.background = `hsl(280, 50%, ${backgroundInput.value}%)`
+        }
+    })
+}
