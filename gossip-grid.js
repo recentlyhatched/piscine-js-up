@@ -100,27 +100,28 @@ export const grid = () => {
 
   // --- apply styles (width, font-size, background) ---
   function applyStyles() {
-    container.style.width = `${widthCtrl.input.value}px`;
-    container.style.margin = '0 auto';
-
+    // Apply width to all gossip cards (including the form card)
     const cards = container.querySelectorAll('.gossip');
-    cards.forEach((card, idx) => {
-      if (idx === 0) {
-        // after a submit the first .gossip might be the newly added gossip,
-        // but if it's the original form we don't want to override its internal layout.
-        // Ensure the form card keeps its default look by skipping styling if it contains a form.
-        if (card.querySelector('form')) {
-          // keep default for form
-          return;
-        }
+    cards.forEach((card) => {
+      card.style.width = `${widthCtrl.input.value}px`;
+    });
+
+    // Apply font size and background to gossip posts (skip the form's internal layout)
+    cards.forEach((card) => {
+      // If this card contains the form element, don't overwrite its internal layout
+      if (card.querySelector('form')) {
+        // optionally set width only (already set above), skip font/background
+        return;
       }
-      // apply to any gossip card that is not the form
       card.style.fontSize = `${fontSizeCtrl.input.value}px`;
       card.style.background = `hsl(280, 50%, ${bgCtrl.input.value}%)`;
     });
+
+    // Keep the container centered (optional)
+    container.style.width = `${widthCtrl.input.value}px`;
+    container.style.margin = '0 auto';
   }
 
-  // Attach listeners already attached on creation of ranges (they call applyStyles).
-  // Call applyStyles once to initialize visuals.
+  // Initialize visuals
   applyStyles();
 };
