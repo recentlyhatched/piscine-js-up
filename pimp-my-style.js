@@ -1,35 +1,17 @@
-import { styles } from "./pimp-my-style.data.js";
-
-let step = 0;
-let removing = false;
+import { styles } from "./pimp-my-style.data.js"
 
 export const pimp = () => {
-  const btn = document.querySelector(".button");
-  if (!btn) return;
+  const button = document.querySelector(".button");
+  const applied = styles.filter(cls => button.classList.contains(cls));
+  const nextIndex = applied.length;
 
-  if (!removing) {
-    // ADDING phase
-    btn.classList.add(styles[step]);
-    step++;
-
-    if (step === styles.length) {
-      // next click will start removing
-      removing = true;
-    }
+  // If still adding styles
+  if (nextIndex < styles.length) {
+    button.classList.add(styles[nextIndex]);
+    button.classList.remove("unpimp"); // stop unpimping while adding
   } else {
-    // REMOVING phase
-    if (step === styles.length) {
-      // first removal: toggle unpimp on
-      btn.classList.add("unpimp");
-    }
-
-    step--;
-    btn.classList.remove(styles[step]);
-
-    if (step === 0) {
-      // finished removing: toggle unpimp off and reset
-      btn.classList.remove("unpimp");
-      removing = false;
-    }
+    // LIFO: remove last added class
+    button.classList.remove(applied[applied.length - 1]);
+    button.classList.add("unpimp");
   }
 };
