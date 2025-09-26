@@ -101,16 +101,18 @@ document.body.addEventListener("mousemove", (e) => {
     moveCircle(e);
 });
 
-export function createCircle(e) {
+function createCircle(e) {
     if (e === undefined) return;
     new Circle(e.clientX - 25, e.clientY - 25);
 }
 
-export function moveCircle(e) {
+function moveCircle(e) {
     if (e === undefined || circles.length === 0) return;
     circles[circles.length - 1].move(e.clientX - 25, e.clientY - 25);
 }
 
-export function setBox() {
+function setBox() {
     box = new Box();
 }
+
+export { createCircle, moveCircle, setBox };
