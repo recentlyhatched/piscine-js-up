@@ -25,7 +25,6 @@ function reduceEntries(obj, callback, initialValue) {
     if (entries.length === 0) {
       throw new TypeError('Reduce of empty object with no initial value');
     }
-    // start accumulator as the first entry (shape: [k, v])
     let acc = entries[0];
     for (let i = 1; i < entries.length; i++) acc = callback(acc, entries[i], obj);
     return acc;
@@ -36,7 +35,9 @@ function reduceEntries(obj, callback, initialValue) {
   }
 }
 
-// Uses nutritionDB (assumed provided)
+// --------------------
+// Grocery functions
+// --------------------
 function totalCalories(cart) {
   const sum = reduceEntries(
     cart,
@@ -47,7 +48,6 @@ function totalCalories(cart) {
     },
     0
   );
-  // Normalize floating point precision to one decimal place
   return parseFloat(sum.toFixed(1));
 }
 
@@ -67,7 +67,9 @@ function cartTotal(cart) {
 
     const totals = {};
     for (const [nutrient, value] of Object.entries(nutrition)) {
-      totals[nutrient] = (value * grams) / 100;
+      const scaled = (value * grams) / 100;
+      // round to 3 decimal places (matches DB precision)
+      totals[nutrient] = parseFloat(scaled.toFixed(3));
     }
     return [item, totals];
   });
