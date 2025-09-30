@@ -38,14 +38,15 @@ function filterCurry(fn) {
 }
 
 // Sum of pilotingScore + shootingScore for force users
-function reduceScore(personnel) {
+function reduceScore(personnel, initialValue = 0) {
   return reduceCurry((acc, [_, p]) => {
     if (p.isForceUser) {
       return acc + p.pilotingScore + p.shootingScore;
     }
     return acc;
-  })(personnel, 0);
+  })(personnel, initialValue);
 }
+
 
 // Only force users with shootingScore >= 80
 function filterForce(personnel) {
