@@ -1,8 +1,12 @@
 async function queryServers(serverName, q) {
-  const primary = getJSON(`/${serverName}?q=${q}`);
-  const backup = getJSON(`/${serverName}_backup?q=${q}`);
-  return Promise.race([primary, backup]);
+  // Wrap each call in a function to preserve simulated timings
+  const primary = async () => getJSON(`/${serverName}?q=${q}`);
+  const backup = async () => getJSON(`/${serverName}_backup?q=${q}`);
+
+  // Race the two promises
+  return Promise.race([primary(), backup()]);
 }
+
 
 async function gougleSearch(q) {
   const servers = ['web', 'image', 'video'];
