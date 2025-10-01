@@ -1,24 +1,20 @@
 async function getJSON(path, params = {}) {
-  // Construct URL with optional query parameters
-  const url = new URL(path, typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
-  
-  // Append query params if provided
-  Object.entries(params).forEach(([key, value]) => {
-    url.searchParams.append(key, value);
-  });
+  // Build query string
+  const queryString = Object.entries(params)
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join('&');
 
-  // Fetch the URL
-  const response = await fetch(url.toString());
+  const url = queryString ? `${path}?${queryString}` : path;
 
-  // Throw if response status is not OK
+  // Fetch
+  const response = await fetch(url);
+
   if (!response.ok) {
     throw new Error(response.statusText);
   }
 
-  // Parse JSON
   const json = await response.json();
 
-  // Return data or throw error from JSON body
   if ('data' in json) {
     return json.data;
   } else if ('error' in json) {
