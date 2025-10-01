@@ -1,13 +1,17 @@
 function interpolation({ step, start, end, callback, duration }) {
-  if (step <= 0) return;
+  // validate
+  step = Number(step);
+  duration = Number(duration);
+  if (!step || step <= 0 || typeof callback !== 'function') return;
 
   const interval = duration / step;
-  const delta = (end - start) / step;
+  const delta = end - start;
 
   for (let i = 1; i <= step; i++) {
+    // schedule each callback at i * interval
     setTimeout(() => {
-      const x = (i * (end - start)) / step; // distance covered so far
-      const y = start + delta * i;          // current interpolated point
+      const x = start + ((i - 1) / step) * delta; // exclude the end
+      const y = i * interval; // elapsed time for this point
       callback([x, y]);
     }, i * interval);
   }
