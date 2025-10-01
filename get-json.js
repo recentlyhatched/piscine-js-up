@@ -1,7 +1,9 @@
 async function getJSON(path, params = {}) {
-  // Build query string
+  // Build query string, encoding spaces as '+'
   const queryString = Object.entries(params)
-    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .map(([k, v]) =>
+      `${encodeURIComponent(k)}=${encodeURIComponent(v).replace(/%20/g, '+')}`
+    )
     .join('&');
 
   const url = queryString ? `${path}?${queryString}` : path;
