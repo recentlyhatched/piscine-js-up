@@ -19,14 +19,14 @@ function retry(count, callback) {
 
 function timeout(delay, callback) {
   return async function (...args) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       let settled = false;
 
-      // set a timer for the timeout
+      // set a timer for timeout
       const timer = setTimeout(() => {
         if (!settled) {
           settled = true;
-          resolve(new Error('timeout'));
+          reject(new Error('timeout')); // throw instead of returning
         }
       }, delay);
 
@@ -43,9 +43,10 @@ function timeout(delay, callback) {
           if (!settled) {
             settled = true;
             clearTimeout(timer);
-            resolve(err); // resolve with the error from callback
+            reject(err); // propagate callback errors
           }
         });
     });
   };
 }
+
