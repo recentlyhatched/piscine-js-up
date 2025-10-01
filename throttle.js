@@ -40,11 +40,13 @@ function opThrottle(fn, wait, options = {}) {
   let lastArgs = null;
   let lastThis = null;
   let lastCallTime = 0;
+  let result;
 
   function invoke(time) {
     lastCallTime = time;
-    fn.apply(lastThis, lastArgs);
+    result = fn.apply(lastThis, lastArgs);
     lastArgs = lastThis = null;
+    return result;
   }
 
   function trailingInvoke() {
@@ -56,8 +58,8 @@ function opThrottle(fn, wait, options = {}) {
 
   return function throttled(...args) {
     const now = Date.now();
-    if (!lastCallTime && !leading) {
-      // initialize so first call is delayed if leading=false
+    if (!lastCallTime && leading === false) {
+      // Initialize so first call is delayed
       lastCallTime = now;
     }
 
@@ -72,8 +74,11 @@ function opThrottle(fn, wait, options = {}) {
       }
       invoke(now);
     } else if (!timer && trailing) {
-      // Only schedule trailing if there was another call DURING the wait
+      // Only schedule a trailing call if we’re within the window
       timer = setTimeout(trailingInvoke, remaining);
     }
+
+    return result;
   };
 }
+
