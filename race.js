@@ -3,12 +3,12 @@ function race(promises) {
 }
 
 function some(promises, count) {
-  if (!promises.length || count === 0) return Promise.resolve(undefined);
+  if (!promises.length || count === 0) return Promise.resolve([]); // return []
 
   const results = [];
   let resolvedCount = 0;
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     promises.forEach(p =>
       Promise.resolve(p)
         .then(value => {
@@ -22,3 +22,4 @@ function some(promises, count) {
     );
   });
 }
+
