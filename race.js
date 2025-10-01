@@ -3,23 +3,32 @@ function race(promises) {
 }
 
 function some(promises, count) {
-  if (!promises.length || count === 0) return Promise.resolve([]); // return []
+  if (!promises.length || count === 0) return Promise.resolve([]);
 
-  const results = [];
+  const results = Array(promises.length).fill(undefined);
   let resolvedCount = 0;
 
   return new Promise((resolve) => {
-    promises.forEach(p =>
+    promises.forEach((p, i) => {
       Promise.resolve(p)
         .then(value => {
-          if (resolvedCount < count) {
-            results.push(value);
-            resolvedCount++;
-            if (resolvedCount === count) resolve(results);
+          results[i] = value;
+          resolvedCount++;
+          if (resolvedCount === count) {
+            // take the first `count` resolved values in original order
+            const output = results.filter(r => r !== undefined).slice(0, count);
+            resolve(output);
           }
         })
-        .catch(() => {}) // ignore rejected promises
-    );
+        .catch(() => {
+          resolvedCount++;
+          if (resolvedCount === count) {
+            const output = results.filter(r => r !== undefined).slice(0, count);
+            resolve(output);
+          }
+        });
+    });
   });
 }
+
 
