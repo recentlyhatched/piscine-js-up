@@ -1,8 +1,8 @@
 async function getJSON(path, params = {}) {
-  // Build query string, encoding spaces as '+'
+  // Build query string, encode spaces as '+'
   const queryString = Object.entries(params)
     .map(([k, v]) =>
-      `${encodeURIComponent(k)}=${encodeURIComponent(v).replace(/%20/g, '+')}`
+      `${encodeURIComponent(k).replace(/%20/g, '+')}=${encodeURIComponent(v).replace(/%20/g, '+')}`
     )
     .join('&');
 
@@ -12,12 +12,12 @@ async function getJSON(path, params = {}) {
 
   const json = await response.json();
 
-  // First, throw if JSON contains 'error'
+  // Throw if JSON contains 'error'
   if ('error' in json) {
     throw new Error(json.error);
   }
 
-  // Then, throw if HTTP status is not OK
+  // Throw if HTTP status is not OK
   if (!response.ok) {
     throw new Error(response.statusText);
   }
