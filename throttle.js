@@ -46,6 +46,7 @@ function throttle(fn, wait) {
 
 
 
+
 // Throttle with options: { leading, trailing }
 function opThrottle(fn, wait, options = {}) {
   const { leading = true, trailing = true } = options;
