@@ -1,15 +1,15 @@
 async function getJSON(path, params = {}) {
-  // Build query string, encode spaces as '+'
+  // Build query string with spaces replaced by '+'
   const queryString = Object.entries(params)
-    .map(([k, v]) =>
-      `${encodeURIComponent(k).replace(/%20/g, '+')}=${encodeURIComponent(v).replace(/%20/g, '+')}`
+    .map(
+      ([k, v]) =>
+        `${encodeURIComponent(k).replace(/%20/g, '+')}=${encodeURIComponent(v).replace(/%20/g, '+')}`
     )
     .join('&');
 
   const url = queryString ? `${path}?${queryString}` : path;
 
   const response = await fetch(url);
-
   const json = await response.json();
 
   // Throw if JSON contains 'error'
