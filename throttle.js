@@ -1,36 +1,49 @@
 // Basic throttle (leading + trailing by default)
 function throttle(fn, wait) {
-  let timer = null;
-  let lastArgs = null;
-  let lastThis = null;
   let lastCallTime = 0;
+  let timer = null;
+  let lastArgs, lastThis;
+  let result;
+
+  function invoke(time) {
+    lastCallTime = time;
+    result = fn.apply(lastThis, lastArgs);
+    lastArgs = lastThis = null;
+    return result;
+  }
+
+  function trailingInvoke() {
+    timer = null;
+    if (lastArgs) {
+      invoke(Date.now());
+    }
+  }
 
   return function throttled(...args) {
     const now = Date.now();
-    const remaining = wait - (now - lastCallTime);
+    if (!lastCallTime) {
+      lastCallTime = now; // init on first call
+    }
 
+    const remaining = wait - (now - lastCallTime);
     lastArgs = args;
     lastThis = this;
 
-    if (remaining <= 0) {
+    if (remaining <= 0 || remaining > wait) {
       if (timer) {
         clearTimeout(timer);
         timer = null;
       }
-      lastCallTime = now;
-      fn.apply(lastThis, lastArgs);
-      lastArgs = lastThis = null;
+      invoke(now); // leading execution
     } else if (!timer) {
-      // schedule trailing call
-      timer = setTimeout(() => {
-        lastCallTime = Date.now();
-        timer = null;
-        fn.apply(lastThis, lastArgs);
-        lastArgs = lastThis = null;
-      }, remaining);
+      // schedule trailing if another call happens inside wait window
+      timer = setTimeout(trailingInvoke, remaining);
     }
+
+    return result;
   };
 }
+
 
 
 // Throttle with options: { leading, trailing }
