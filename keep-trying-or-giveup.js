@@ -3,16 +3,19 @@ function retry(count, callback) {
     let attempts = 0;
     while (true) {
       try {
+        // attempt the callback
         return await callback(...args);
       } catch (err) {
-        if (attempts >= count) {
-          throw new Error('Max retries reached');
-        }
         attempts++;
+        if (attempts > count) {
+          // throw only after exhausting all retries
+          throw err;
+        }
       }
     }
   };
 }
+
 
 function timeout(delay, callback) {
   return async function (...args) {
