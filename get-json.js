@@ -8,20 +8,24 @@ async function getJSON(path, params = {}) {
 
   const url = queryString ? `${path}?${queryString}` : path;
 
-  // Fetch
   const response = await fetch(url);
 
+  const json = await response.json();
+
+  // First, throw if JSON contains 'error'
+  if ('error' in json) {
+    throw new Error(json.error);
+  }
+
+  // Then, throw if HTTP status is not OK
   if (!response.ok) {
     throw new Error(response.statusText);
   }
 
-  const json = await response.json();
-
+  // Return data if present
   if ('data' in json) {
     return json.data;
-  } else if ('error' in json) {
-    throw new Error(json.error);
-  } else {
-    throw new Error('Invalid response format');
   }
+
+  throw new Error('Invalid response format');
 }
