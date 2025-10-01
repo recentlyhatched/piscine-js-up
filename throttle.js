@@ -48,16 +48,16 @@ function opThrottle(fn, wait, options = {}) {
   }
 
   function trailingInvoke() {
+    timer = null;
     if (trailing && lastArgs) {
       invoke(Date.now());
     }
-    timer = null;
   }
 
   return function throttled(...args) {
     const now = Date.now();
     if (!lastCallTime && !leading) {
-      // prevent leading call
+      // skip immediate call if leading=false
       lastCallTime = now;
     }
 
@@ -70,8 +70,9 @@ function opThrottle(fn, wait, options = {}) {
         clearTimeout(timer);
         timer = null;
       }
-      invoke(now);
+      invoke(now); // leading invocation
     } else if (!timer && trailing) {
+      // schedule trailing only if not already invoked
       timer = setTimeout(trailingInvoke, remaining);
     }
   };
