@@ -1,31 +1,15 @@
-async function getJSON(path, params = {}) {
-  // Build query string with spaces replaced by '+'
-  const queryString = Object.entries(params)
-    .map(
-      ([k, v]) =>
-        `${encodeURIComponent(k).replace(/%20/g, '+')}=${encodeURIComponent(v).replace(/%20/g, '+')}`
-    )
-    .join('&');
+async function getJSON(path, params) {
+    let formatParams = ""
+    for (const [key, value] of Object.entries(params)) {
+        formatParams += `${key}=${value}&`.replaceAll(" ", "+")
+    }
+    let url = `${path}?${formatParams.slice(0, -1)}`
 
-  const url = queryString ? `${path}?${queryString}` : path;
-
-  const response = await fetch(url);
-  const json = await response.json();
-
-  // Throw if JSON contains 'error'
-  if ('error' in json) {
-    throw new Error(json.error);
-  }
-
-  // Throw if HTTP status is not OK
-  if (!response.ok) {
-    throw new Error(response.statusText);
-  }
-
-  // Return data if present
-  if ('data' in json) {
-    return json.data;
-  }
-
-  throw new Error('Invalid response format');
+    return await fetch(url).then(response => {
+        if (!response.ok) throw new Error(response.statusText)
+        return response.json()
+    }).then(json => {
+        if (json["data"]) return json["data"]
+        if (json["error"]) throw new Error(json["error"])
+    })
 }
