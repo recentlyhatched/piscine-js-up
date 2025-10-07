@@ -1,17 +1,21 @@
 #!/usr/bin/env node
 
-const input = process.argv.slice(2).join(' ');
+const firstArg = process.argv[2];
 
-if (!input) {
+if (!firstArg) {
   console.log("Usage: node verydisco.mjs <text>");
   process.exit(1);
 }
 
-// Combine all words into one string (no spaces)
-const joined = input.replace(/\s+/g, '');
+function veryDiscoWord(word) {
+  const mid = Math.ceil(word.length / 2);
+  return word.slice(mid) + word.slice(0, mid);
+}
 
-// Cut in half and swap parts
-const mid = Math.ceil(joined.length / 2);
-const result = joined.slice(mid) + joined.slice(0, mid);
+// Only use the first argument; if it contains spaces, process each word inside it.
+const result = firstArg
+  .split(/\s+/)
+  .map(veryDiscoWord)
+  .join(' ');
 
 console.log(result);
