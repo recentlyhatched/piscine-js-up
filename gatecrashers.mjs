@@ -21,11 +21,8 @@ function getBasicAuthCredentials(req) {
     return null;
   }
 
-  // Extract the base64 encoded part and decode it
   const b64Auth = authHeader.slice(6).trim();
-  // Decode the base64 string (e.g., "Caleb_Squires:abracadabra")
   const credentialsString = Buffer.from(b64Auth, 'base64').toString();
-
   const parts = credentialsString.split(':');
   if (parts.length !== 2) {
     return null;
@@ -36,40 +33,38 @@ function getBasicAuthCredentials(req) {
 }
 
 /**
- * Handles the 401 Unauthorized response.
+ * Middleware-like function to handle 401 Unauthorized response.
  * @param {http.ServerResponse} res - The response object.
  */
 function respondUnauthorized(res) {
-  // Set the WWW-Authenticate header to prompt the client for credentials
   res.writeHead(401, {
     'Content-Type': 'application/json',
     'WWW-Authenticate': 'Basic realm="Guest List Modification"',
   });
-  // The test expects "Authorization Required" plus a character, 
-  // but "Authorization Required" is the standard response body.
   res.end('Authorization Required');
 }
 
 const server = http.createServer((req, res) => {
-  // 1. Authentication Check
+  // 1. Authentication
   const credentials = getBasicAuthCredentials(req);
-  const isAuthorized = credentials &&
-                       ALLOWED_USERS.includes(credentials.username) &&
-                       credentials.password === SECRET_PASSWORD;
+  const isAuthorized =
+    credentials &&
+    ALLOWED_USERS.includes(credentials.username) &&
+    credentials.password === SECRET_PASSWORD;
 
   if (!isAuthorized) {
     respondUnauthorized(res);
     return;
   }
 
-  // 2. Original Logic: Only POST is handled for creating/updating guests
+  // 2. Only POST allowed
   if (req.method !== 'POST') {
     res.writeHead(500, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'server failed' }));
     return;
   }
 
-  const guestName = decodeURIComponent(req.url.slice(1)); // strip leading '/'
+  const guestName = decodeURIComponent(req.url.slice(1));
   if (!guestName) {
     res.writeHead(500, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'server failed' }));
@@ -83,33 +78,30 @@ const server = http.createServer((req, res) => {
 
   req.on('end', async () => {
     try {
-      // Ensure guests directory exists
       const guestsDir = resolve('guests');
       await mkdir(guestsDir, { recursive: true });
-
       const filePath = resolve(guestsDir, `${guestName}.json`);
 
-      // Try to parse body as JSON
-      try {
-        const parsed = JSON.parse(body);
-        // Save pretty JSON to file
-        await writeFile(filePath, JSON.stringify(parsed, null, 2), 'utf8');
-
-        // Respond with the parsed object
-        // Use 200 OK as per the test expectation
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(parsed));
-      } catch (parseErr) {
-        // Body is not valid JSON — still save body as-is.
-        await writeFile(filePath, body, 'utf8');
-
-        // Return a JSON object that contains the raw data
-        // Use 200 OK as per the test expectation
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ data: body }));
+      let parsed;
+      // Handle empty or non-JSON input gracefully
+      if (!body || body.trim() === '') {
+        parsed = {};
+      } else {
+        try {
+          parsed = JSON.parse(body);
+        } catch {
+          // try to recover gracefully if the input is not valid JSON
+          parsed = { data: body };
+        }
       }
+
+      // Save pretty JSON to file
+      await writeFile(filePath, JSON.stringify(parsed, null, 2), 'utf8');
+
+      // Respond with JSON
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(parsed));
     } catch (err) {
-      // Any write/mkdir or unexpected error -> 500 with server failed
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'server failed' }));
     }
