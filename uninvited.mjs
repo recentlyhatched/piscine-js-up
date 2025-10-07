@@ -22,6 +22,7 @@ function parseAuth(header) {
 
 const server = http.createServer(async (req, res) => {
   if (req.method !== 'POST') {
+    // Note: The original code returned 500 here, which is kept for consistency with the source.
     res.writeHead(500, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'server failed' }));
     return;
@@ -60,7 +61,7 @@ const server = http.createServer(async (req, res) => {
       let statusCode = 201; // default: created
       try {
         await access(filePath);
-        statusCode = 201; // already exists → updating
+        statusCode = 201; // already exists → updating (Original code used 201 here)
       } catch {}
 
       await writeFile(filePath, JSON.stringify(parsed, null, 2), 'utf8');
