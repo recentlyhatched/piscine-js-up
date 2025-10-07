@@ -1,18 +1,19 @@
 #!/usr/bin/env node
 
 import http from "http";
-import { writeFile, mkdir } from "fs/promises";
+import { mkdir, writeFile } from "fs/promises";
 import { resolve } from "path";
 
 const PORT = 5000;
 const FRIENDS = ["Caleb_Squires", "Tyrique_Dalton", "Rahima_Young"];
 const PASSWORD = "abracadabra";
 
+// Decode Basic Auth header → { username, password }
 function parseAuth(header) {
   if (!header?.startsWith("Basic ")) return null;
   try {
-    const base64 = header.split(" ")[1];
-    const decoded = Buffer.from(base64, "base64").toString("utf8");
+    const token = header.split(" ")[1];
+    const decoded = Buffer.from(token, "base64").toString("utf8");
     const [username, password] = decoded.split(":");
     return { username, password };
   } catch {
@@ -20,13 +21,14 @@ function parseAuth(header) {
   }
 }
 
-const server = http.createServer(async (req, res) => {
+const server = http.createServer((req, res) => {
   if (req.method !== "POST") {
     res.writeHead(500, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ error: "server failed" }));
     return;
   }
 
+  // --- Authentication ---
   const auth = parseAuth(req.headers["authorization"]);
   const authorized =
     auth &&
@@ -39,6 +41,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // --- Extract guest name ---
   const guestName = decodeURIComponent(req.url.slice(1));
   if (!guestName) {
     res.writeHead(500, { "Content-Type": "application/json" });
@@ -53,10 +56,11 @@ const server = http.createServer(async (req, res) => {
     try {
       const data = JSON.parse(body || "{}");
 
-      const guestsDir = resolve("guests");
-      await mkdir(guestsDir, { recursive: true });
+      // Ensure "guests" directory exists
+      const dir = resolve("guests");
+      await mkdir(dir, { recursive: true });
 
-      const filePath = resolve(guestsDir, `${guestName}.json`);
+      const filePath = resolve(dir, `${guestName}.json`);
       await writeFile(filePath, JSON.stringify(data, null, 2), "utf8");
 
       res.writeHead(200, { "Content-Type": "application/json" });
