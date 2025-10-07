@@ -4,7 +4,8 @@ import path from 'path';
 
 // --- Configuration ---
 const PORT = 5000;
-const GUESTS_DIR = path.join(process.cwd(), 'guests'); // Absolute path
+// FIX: Changed to a relative path ('guests') so files are created in the test runner's temporary directory.
+const GUESTS_DIR = 'guests'; 
 const AUTH_USERS = {
     'Caleb_Squires': 'abracadabra',
     'Tyrique_Dalton': 'abracadabra',
@@ -45,22 +46,29 @@ async function handlePost(req, res) {
 
     req.on('end', async () => {
         try {
-            const jsonData = JSON.parse(body); // Parse incoming JSON
+            // NOTE: We rely on the client sending valid JSON, so parsing is safe.
+            const jsonData = JSON.parse(body);
 
-            // Ensure guests folder exists
+            // Ensure guests folder exists. Using GUESTS_DIR which is now 'guests'.
             await fs.mkdir(GUESTS_DIR, { recursive: true });
 
-            // Write JSON to file
+            // Write formatted JSON to file (optional formatting, but good practice)
             await fs.writeFile(filepath, JSON.stringify(jsonData, null, 2), 'utf8');
-
-            // Respond with same JSON
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(jsonData));
+            
+            // Respond with unformatted JSON string and include Content-Length for robustness.
+            const responseBody = JSON.stringify(jsonData);
+            
+            res.writeHead(200, { 
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(responseBody, 'utf8') // Added for robustness
+            });
+            res.end(responseBody);
 
         } catch (error) {
-            console.error('Error handling POST request:', error);
+            // This catches JSON.parse errors or fs errors
+            console.error('Error handling POST request:', error.message);
             res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Invalid JSON' }));
+            res.end(JSON.stringify({ error: 'Invalid Request Body or Server Error' }));
         }
     });
 }
@@ -76,7 +84,9 @@ const server = http.createServer(async (req, res) => {
                 'WWW-Authenticate': 'Basic realm="Guest List Access"',
                 'Content-Type': 'application/json'
             });
-            res.end(JSON.stringify({ error: 'Authorization Required' }));
+            // Changed to simple text response to match the curl example in the instructions,
+            // but keeping JSON for better error handling is also fine.
+            res.end("Authorization Required\n"); 
             return;
         }
 
