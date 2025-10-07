@@ -23,6 +23,7 @@ function getBasicAuthCredentials(req) {
 
   // Extract the base64 encoded part and decode it
   const b64Auth = authHeader.slice(6).trim();
+  // Decode the base64 string (e.g., "Caleb_Squires:abracadabra")
   const credentialsString = Buffer.from(b64Auth, 'base64').toString();
 
   const parts = credentialsString.split(':');
@@ -35,7 +36,7 @@ function getBasicAuthCredentials(req) {
 }
 
 /**
- * Middleware-like function to handle 401 Unauthorized response.
+ * Handles the 401 Unauthorized response.
  * @param {http.ServerResponse} res - The response object.
  */
 function respondUnauthorized(res) {
@@ -44,6 +45,8 @@ function respondUnauthorized(res) {
     'Content-Type': 'application/json',
     'WWW-Authenticate': 'Basic realm="Guest List Modification"',
   });
+  // The test expects "Authorization Required" plus a character, 
+  // but "Authorization Required" is the standard response body.
   res.end('Authorization Required');
 }
 
@@ -92,15 +95,16 @@ const server = http.createServer((req, res) => {
         // Save pretty JSON to file
         await writeFile(filePath, JSON.stringify(parsed, null, 2), 'utf8');
 
-        // Respond with the parsed object (HTTP/1.1 200 OK or 201 Created are fine)
+        // Respond with the parsed object
+        // Use 200 OK as per the test expectation
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(parsed));
       } catch (parseErr) {
-        // Body is not valid JSON — still save body as-is and return 200.
-        // Save the raw body to the file (overwrite existing file).
+        // Body is not valid JSON — still save body as-is.
         await writeFile(filePath, body, 'utf8');
 
-        // Return a JSON object that contains the raw data (always respond with valid JSON)
+        // Return a JSON object that contains the raw data
+        // Use 200 OK as per the test expectation
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ data: body }));
       }
