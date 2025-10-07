@@ -17,7 +17,7 @@ try {
     }
   });
 
-  // Filter guests who answered "YES"
+  // Filter guests who answered YES
   const guests = [];
   for (const file of jsonFiles) {
     try {
@@ -27,7 +27,7 @@ try {
         guests.push({ first, last });
       }
     } catch {
-      // ignore invalid JSON
+      // silently ignore malformed JSON
     }
   }
 
@@ -37,14 +37,13 @@ try {
     return cmp !== 0 ? cmp : a.first.localeCompare(b.first, undefined, { sensitivity: 'base' });
   });
 
-  // Prepare output lines
+  // Format output lines
   const lines = guests.map((g, i) => `${i + 1}. ${g.last} ${g.first}`);
 
-  // Write to vip.txt (empty file if no VIPs)
+  // Write to vip.txt (even if empty)
   writeFileSync(join(dirPath, 'vip.txt'), lines.join('\n'), 'utf8');
 
-  // ✅ Do not print anything to stdout
-
+  // ✅ DO NOT print anything at all
 } catch {
-  // Fail silently for the test if directory read fails
+  // Fail silently — no output to stdout/stderr
 }
