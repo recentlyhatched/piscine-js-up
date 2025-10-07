@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-// Get the argument (skip first 2 args: node + script name)
 const input = process.argv.slice(2).join(' ');
 
 if (!input) {
@@ -8,19 +7,11 @@ if (!input) {
   process.exit(1);
 }
 
-// Function to "very disco" a single word
-function veryDiscoWord(word) {
-  const mid = Math.ceil(word.length / 2);
-  const firstHalf = word.slice(0, mid);
-  const secondHalf = word.slice(mid);
-  return secondHalf + firstHalf;
-}
+// Combine all words into one string (no spaces)
+const joined = input.replace(/\s+/g, '');
 
-// Split into words, transform each, and join back
-const result = input
-  .split(/\s+/)
-  .map(veryDiscoWord)
-  .join(' ');
+// Cut in half and swap parts
+const mid = Math.ceil(joined.length / 2);
+const result = joined.slice(mid) + joined.slice(0, mid);
 
-// Display the result 💃
 console.log(result);
