@@ -30,5 +30,3 @@ function some(promises, count) {
     });
   });
 }
-
-
