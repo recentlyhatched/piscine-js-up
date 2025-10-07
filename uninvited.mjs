@@ -60,7 +60,7 @@ const server = http.createServer(async (req, res) => {
       let statusCode = 201; // default: created
       try {
         await access(filePath);
-        statusCode = 200; // already exists → updating
+        statusCode = 201; // already exists → updating
       } catch {}
 
       await writeFile(filePath, JSON.stringify(parsed, null, 2), 'utf8');
