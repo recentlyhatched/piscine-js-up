@@ -47,20 +47,20 @@ async function handlePost(req, res) {
     req.on('data', chunk => body += chunk.toString());
 
     req.on('end', async () => {
+        let responseBody;
         try {
-            // Attempt to parse the incoming body
+            // 1. Parse and validate JSON
             const jsonData = JSON.parse(body);
+            responseBody = JSON.stringify(jsonData);
 
-            // Ensure guests folder exists
+            // 2. Ensure guests folder exists
             await fs.mkdir(GUESTS_DIR, { recursive: true });
 
-            // Write the JSON to the file, using 2 spaces for formatting (optional)
+            // 3. Write the JSON to the file
+            // Use pretty print for storage, but return unformatted JSON for the response
             await fs.writeFile(filepath, JSON.stringify(jsonData, null, 2), 'utf8');
-
-            // Prepare the response body (unformatted is fine)
-            const responseBody = JSON.stringify(jsonData);
             
-            // Send the 200 OK response
+            // 4. Send 200 OK response (Note: uninvited uses 201, but gatecrashers example uses 200)
             res.writeHead(200, { 
                 'Content-Type': 'application/json',
                 // Add Content-Length for robust transmission
@@ -69,10 +69,18 @@ async function handlePost(req, res) {
             res.end(responseBody);
 
         } catch (error) {
-            // Handle bad JSON or file system errors
+            // Handle bad JSON (400) or file system errors (500)
             console.error('Error handling POST request:', error.message);
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Invalid Request Body or Server Error' }));
+            
+            // If the error is a SyntaxError (bad JSON), respond with 400.
+            if (error instanceof SyntaxError) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Invalid JSON body' }));
+            } else {
+                // If the error is a file system error, respond with 500 (as per uninvited instructions)
+                res.writeHead(500, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'server failed' }));
+            }
         }
     });
 }
@@ -89,7 +97,7 @@ const server = http.createServer(async (req, res) => {
                 'WWW-Authenticate': 'Basic realm="Guest List Access"',
                 'Content-Type': 'application/json'
             });
-            // Matching the example output text as closely as possible
+            // Matching the curl example's body output ("Authorization Required%")
             res.end("Authorization Required\n"); 
             return;
         }
