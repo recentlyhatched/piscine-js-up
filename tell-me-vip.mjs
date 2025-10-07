@@ -6,75 +6,59 @@ import { resolve, join } from 'path';
 const dirPath = process.argv[2] ? resolve(process.argv[2]) : process.cwd();
 const vipPath = join(dirPath, 'vip.txt');
 
-// Brute-force: ensure vip.txt exists (create empty file first)
+// Ensure vip.txt exists (empty if needed)
 try {
   writeFileSync(vipPath, '', 'utf8');
-} catch {
-  // ignore
-}
+} catch {}
 
 try {
   const entries = readdirSync(dirPath);
-
   const guests = [];
 
   for (const name of entries) {
-    const full = join(dirPath, name);
+    const fullPath = join(dirPath, name);
 
-    // Try to read every entry that looks like a file (but be tolerant)
+    // Skip if not a file
     try {
-      if (!statSync(full).isFile()) continue;
+      if (!statSync(fullPath).isFile()) continue;
     } catch {
-      // could not stat -> skip this entry
       continue;
     }
 
-    // Try to read & parse the file contents as JSON (brute-force)
+    // Try to read and parse JSON
     try {
-      const txt = readFileSync(full, 'utf8');
-      let data;
-      try {
-        data = JSON.parse(txt);
-      } catch {
-        // not JSON -> skip parsing but continue (brute force tries only JSON for answer)
-        continue;
-      }
+      const txt = readFileSync(fullPath, 'utf8');
+      const data = JSON.parse(txt);
+      if (data.answer && data.answer.toUpperCase() === 'YES') {
+        // Remove file extension safely
+        const dotIndex = name.lastIndexOf('.');
+        const base = dotIndex !== -1 ? name.slice(0, dotIndex) : name;
 
-      if (data && typeof data.answer === 'string' && data.answer.toUpperCase() === 'YES') {
-        // Extract base name without extension and split on underscore(s)
-        const base = name.replace(/\.[^/.]+$/, '');
+        // Split into first and last name
         const parts = base.split('_');
         const first = parts[0] || '';
         const last = parts.length > 1 ? parts.slice(1).join('_') : '';
         guests.push({ first, last });
       }
     } catch {
-      // read/parsing errors -> ignore and continue
+      // ignore read/parse errors
       continue;
     }
   }
 
-  // Sort by last name (fallback to first name)
+  // Sort by last name, then first name
   guests.sort((a, b) => {
-    const aLast = a.last || a.first || '';
-    const bLast = b.last || b.first || '';
-    const cmp = aLast.localeCompare(bLast, undefined, { sensitivity: 'base' });
-    if (cmp !== 0) return cmp;
-    const aFirst = a.first || '';
-    const bFirst = b.first || '';
-    return aFirst.localeCompare(bFirst, undefined, { sensitivity: 'base' });
+    const cmp = (a.last || '').localeCompare(b.last || '', undefined, { sensitivity: 'base' });
+    return cmp !== 0 ? cmp : (a.first || '').localeCompare(b.first || '', undefined, { sensitivity: 'base' });
   });
 
-  // Format lines
+  // Prepare lines
   const lines = guests.map((g, i) => `${i + 1}. ${g.last} ${g.first}`);
 
-  // Overwrite vip.txt with final content (may be empty)
-  try {
-    writeFileSync(vipPath, lines.join('\n'), 'utf8');
-  } catch {
-    // ignore write errors
-  }
+  // Write vip.txt (overwrite even if empty)
+  writeFileSync(vipPath, lines.join('\n'), 'utf8');
 
-  // Silent: do not write to stdout/stderr
+  // Silent: do not print anything
 } catch {
-  /
+  // Fail silently; vip.txt already exists
+}
