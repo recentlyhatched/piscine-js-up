@@ -4,7 +4,7 @@ import path from 'path';
 
 // --- Configuration ---
 const PORT = 5000;
-// FIX: Changed to a relative path ('guests') so files are created in the test runner's temporary directory.
+// FIX: Using a relative path 'guests' so the directory is created within the test environment's working directory.
 const GUESTS_DIR = 'guests'; 
 const AUTH_USERS = {
     'Caleb_Squires': 'abracadabra',
@@ -38,34 +38,38 @@ function isAuthenticated(user, pass) {
  * Handles POST requests from authorized users.
  */
 async function handlePost(req, res) {
+    // Get the filename (e.g., Ricky_Banni) from the URL path
     const filename = path.basename(req.url);
     const filepath = path.join(GUESTS_DIR, `${filename}.json`);
 
     let body = '';
+    // Read the request body data chunks
     req.on('data', chunk => body += chunk.toString());
 
     req.on('end', async () => {
         try {
-            // NOTE: We rely on the client sending valid JSON, so parsing is safe.
+            // Attempt to parse the incoming body
             const jsonData = JSON.parse(body);
 
-            // Ensure guests folder exists. Using GUESTS_DIR which is now 'guests'.
+            // Ensure guests folder exists
             await fs.mkdir(GUESTS_DIR, { recursive: true });
 
-            // Write formatted JSON to file (optional formatting, but good practice)
+            // Write the JSON to the file, using 2 spaces for formatting (optional)
             await fs.writeFile(filepath, JSON.stringify(jsonData, null, 2), 'utf8');
-            
-            // Respond with unformatted JSON string and include Content-Length for robustness.
+
+            // Prepare the response body (unformatted is fine)
             const responseBody = JSON.stringify(jsonData);
             
+            // Send the 200 OK response
             res.writeHead(200, { 
                 'Content-Type': 'application/json',
-                'Content-Length': Buffer.byteLength(responseBody, 'utf8') // Added for robustness
+                // Add Content-Length for robust transmission
+                'Content-Length': Buffer.byteLength(responseBody, 'utf8') 
             });
             res.end(responseBody);
 
         } catch (error) {
-            // This catches JSON.parse errors or fs errors
+            // Handle bad JSON or file system errors
             console.error('Error handling POST request:', error.message);
             res.writeHead(400, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Invalid Request Body or Server Error' }));
@@ -80,18 +84,20 @@ const server = http.createServer(async (req, res) => {
         const credentials = parseBasicAuth(authHeader);
 
         if (!credentials || !isAuthenticated(credentials.user, credentials.pass)) {
+            // Handle 401 Unauthorized
             res.writeHead(401, {
                 'WWW-Authenticate': 'Basic realm="Guest List Access"',
                 'Content-Type': 'application/json'
             });
-            // Changed to simple text response to match the curl example in the instructions,
-            // but keeping JSON for better error handling is also fine.
+            // Matching the example output text as closely as possible
             res.end("Authorization Required\n"); 
             return;
         }
 
+        // Handle Authorized POST request
         await handlePost(req, res);
     } else {
+        // Handle non-POST methods
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Not Found' }));
     }
