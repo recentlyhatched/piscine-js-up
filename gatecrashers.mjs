@@ -2,7 +2,7 @@
 
 import http from "http";
 import { mkdir, writeFile } from "fs/promises";
-import { resolve } from "path";
+import { join } from "path";
 
 const PORT = 5000;
 const FRIENDS = ["Caleb_Squires", "Tyrique_Dalton", "Rahima_Young"];
@@ -21,14 +21,12 @@ function parseAuth(header) {
 }
 
 const server = http.createServer((req, res) => {
-  // Accept only POST requests
   if (req.method !== "POST") {
     res.writeHead(500, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ error: "server failed" }));
     return;
   }
 
-  // --- Authentication check ---
   const auth = parseAuth(req.headers["authorization"]);
   const authorized =
     auth &&
@@ -41,7 +39,6 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // --- Extract guest name from URL ---
   const guestName = decodeURIComponent(req.url.slice(1));
   if (!guestName) {
     res.writeHead(500, { "Content-Type": "application/json" });
@@ -49,19 +46,19 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // --- Read full body ---
   const chunks = [];
   req.on("data", chunk => chunks.push(chunk));
 
   req.on("end", async () => {
     try {
       const body = Buffer.concat(chunks).toString();
-      const data = JSON.parse(body); // always expect valid JSON
+      const data = JSON.parse(body || "{}");
 
-      // Create guests directory and save file
-      const guestsDir = resolve("guests");
+      // ✅ Write file in the *current working directory* used by the test
+      const guestsDir = join(process.cwd(), "guests");
       await mkdir(guestsDir, { recursive: true });
-      const filePath = resolve(guestsDir, `${guestName}.json`);
+
+      const filePath = join(guestsDir, `${guestName}.json`);
       await writeFile(filePath, JSON.stringify(data, null, 2), "utf8");
 
       res.writeHead(200, { "Content-Type": "application/json" });
