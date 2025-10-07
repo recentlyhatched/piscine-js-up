@@ -4,7 +4,7 @@ import path from 'path';
 
 // --- Configuration ---
 const PORT = 5000;
-const GUESTS_DIR = 'guests';
+const GUESTS_DIR = path.join(process.cwd(), 'guests'); // Absolute path
 const AUTH_USERS = {
     'Caleb_Squires': 'abracadabra',
     'Tyrique_Dalton': 'abracadabra',
@@ -12,9 +12,7 @@ const AUTH_USERS = {
 };
 
 /**
- * Parses the Authorization header for Basic Access Authentication.
- * @param {string} authHeader - The value of the Authorization header.
- * @returns {{user: string, pass: string} | null} - Object with user/pass or null if invalid.
+ * Parses Basic Auth header.
  */
 function parseBasicAuth(authHeader) {
     if (!authHeader || !authHeader.startsWith('Basic ')) return null;
@@ -29,41 +27,33 @@ function parseBasicAuth(authHeader) {
 }
 
 /**
- * Authenticates a user based on the parsed credentials.
- * @param {string} user - The username.
- * @param {string} pass - The password.
- * @returns {boolean} - True if authenticated, false otherwise.
+ * Validates credentials.
  */
 function isAuthenticated(user, pass) {
     return AUTH_USERS[user] === pass;
 }
 
 /**
- * Handles POST requests for authorized users.
- * @param {http.IncomingMessage} req - The request object.
- * @param {http.ServerResponse} res - The response object.
+ * Handles POST requests from authorized users.
  */
 async function handlePost(req, res) {
     const filename = path.basename(req.url);
     const filepath = path.join(GUESTS_DIR, `${filename}.json`);
 
     let body = '';
-    req.on('data', chunk => {
-        body += chunk.toString();
-    });
+    req.on('data', chunk => body += chunk.toString());
 
     req.on('end', async () => {
         try {
-            // Parse the incoming JSON
-            const jsonData = JSON.parse(body);
+            const jsonData = JSON.parse(body); // Parse incoming JSON
 
-            // Ensure the guests directory exists
+            // Ensure guests folder exists
             await fs.mkdir(GUESTS_DIR, { recursive: true });
 
-            // Write the JSON to file
+            // Write JSON to file
             await fs.writeFile(filepath, JSON.stringify(jsonData, null, 2), 'utf8');
 
-            // Respond with the same JSON
+            // Respond with same JSON
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(jsonData));
 
@@ -75,10 +65,9 @@ async function handlePost(req, res) {
     });
 }
 
-// --- Server Creation ---
+// --- Create HTTP server ---
 const server = http.createServer(async (req, res) => {
     if (req.method === 'POST') {
-        // Authenticate
         const authHeader = req.headers['authorization'];
         const credentials = parseBasicAuth(authHeader);
 
@@ -91,17 +80,14 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
-        // Handle authorized POST
         await handlePost(req, res);
-
     } else {
-        // Only POST allowed
         res.writeHead(404, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Not Found' }));
     }
 });
 
-// --- Server Start ---
+// --- Start server ---
 server.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
