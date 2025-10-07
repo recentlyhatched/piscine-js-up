@@ -41,16 +41,12 @@ try {
   });
 
   // Format output lines
-  const lines = guests.map(
-    (g, i) => `${i + 1}. ${g.last} ${g.first}`
-  );
+  const lines = guests.map((g, i) => `${i + 1}. ${g.last} ${g.first}`);
 
-  // Write to vip.txt
-  const outputPath = join(dirPath, 'vip.txt');
-  writeFileSync(outputPath, lines.join('\n'), 'utf8');
+  // Write to vip.txt (empty file if no VIPs)
+  writeFileSync(join(dirPath, 'vip.txt'), lines.join('\n'), 'utf8');
 
-  // Optionally print confirmation
-  console.log(`vip.txt created with ${lines.length} VIP(s)`);
+  // ✅ No console.log to satisfy test expectations
 
 } catch (err) {
   console.error(`Error processing directory "${dirPath}":`, err.message);
