@@ -1,126 +1,122 @@
+#!/usr/bin/env node
+
 import http from 'http';
-import fs from 'fs/promises';
-import path from 'path';
+import { writeFile, mkdir } from 'fs/promises';
+import { resolve } from 'path';
 
-// --- Configuration ---
 const PORT = 5000;
-// FIX: Using a relative path 'guests' so the directory is created within the test environment's working directory.
-const GUESTS_DIR = 'guests'; 
-const AUTH_USERS = {
-    'Caleb_Squires': 'abracadabra',
-    'Tyrique_Dalton': 'abracadabra',
-    'Rahima_Young': 'abracadabra'
-};
+
+// Allowed users and their shared password
+const ALLOWED_USERS = ['Caleb_Squires', 'Tyrique_Dalton', 'Rahima_Young'];
+const SECRET_PASSWORD = 'abracadabra';
 
 /**
- * Parses Basic Auth header.
+ * Parses the 'Authorization' header for Basic Auth credentials.
+ * @param {http.IncomingMessage} req - The request object.
+ * @returns {{username: string, password: string} | null} - Credentials or null if not found/invalid.
  */
-function parseBasicAuth(authHeader) {
-    if (!authHeader || !authHeader.startsWith('Basic ')) return null;
+function getBasicAuthCredentials(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Basic ')) {
+    return null;
+  }
+
+  // Extract the base64 encoded part and decode it
+  const b64Auth = authHeader.slice(6).trim();
+  const credentialsString = Buffer.from(b64Auth, 'base64').toString();
+
+  const parts = credentialsString.split(':');
+  if (parts.length !== 2) {
+    return null;
+  }
+
+  const [username, password] = parts;
+  return { username, password };
+}
+
+/**
+ * Middleware-like function to handle 401 Unauthorized response.
+ * @param {http.ServerResponse} res - The response object.
+ */
+function respondUnauthorized(res) {
+  // Set the WWW-Authenticate header to prompt the client for credentials
+  res.writeHead(401, {
+    'Content-Type': 'application/json',
+    'WWW-Authenticate': 'Basic realm="Guest List Modification"',
+  });
+  res.end('Authorization Required');
+}
+
+const server = http.createServer((req, res) => {
+  // 1. Authentication Check
+  const credentials = getBasicAuthCredentials(req);
+  const isAuthorized = credentials &&
+                       ALLOWED_USERS.includes(credentials.username) &&
+                       credentials.password === SECRET_PASSWORD;
+
+  if (!isAuthorized) {
+    respondUnauthorized(res);
+    return;
+  }
+
+  // 2. Original Logic: Only POST is handled for creating/updating guests
+  if (req.method !== 'POST') {
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'server failed' }));
+    return;
+  }
+
+  const guestName = decodeURIComponent(req.url.slice(1)); // strip leading '/'
+  if (!guestName) {
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'server failed' }));
+    return;
+  }
+
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk;
+  });
+
+  req.on('end', async () => {
     try {
-        const encoded = authHeader.substring(6).trim();
-        const decoded = Buffer.from(encoded, 'base64').toString('utf8');
-        const [user, pass] = decoded.split(':');
-        return { user, pass };
-    } catch {
-        return null;
+      // Ensure guests directory exists
+      const guestsDir = resolve('guests');
+      await mkdir(guestsDir, { recursive: true });
+
+      const filePath = resolve(guestsDir, `${guestName}.json`);
+
+      // Try to parse body as JSON
+      try {
+        const parsed = JSON.parse(body);
+        // Save pretty JSON to file
+        await writeFile(filePath, JSON.stringify(parsed, null, 2), 'utf8');
+
+        // Respond with the parsed object (HTTP/1.1 200 OK or 201 Created are fine)
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(parsed));
+      } catch (parseErr) {
+        // Body is not valid JSON — still save body as-is and return 200.
+        // Save the raw body to the file (overwrite existing file).
+        await writeFile(filePath, body, 'utf8');
+
+        // Return a JSON object that contains the raw data (always respond with valid JSON)
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ data: body }));
+      }
+    } catch (err) {
+      // Any write/mkdir or unexpected error -> 500 with server failed
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'server failed' }));
     }
-}
+  });
 
-/**
- * Validates credentials.
- */
-function isAuthenticated(user, pass) {
-    return AUTH_USERS[user] === pass;
-}
-
-/**
- * Handles POST requests from authorized users.
- */
-async function handlePost(req, res) {
-    // Get the filename (e.g., Ricky_Banni) from the URL path
-    const filename = path.basename(req.url);
-    const filepath = path.join(GUESTS_DIR, `${filename}.json`);
-
-    let body = '';
-    // Read the request body data chunks
-    req.on('data', chunk => body += chunk.toString());
-
-    req.on('end', async () => {
-        let responseBody;
-        try {
-            // 1. Parse and validate JSON
-            const jsonData = JSON.parse(body);
-            responseBody = JSON.stringify(jsonData);
-
-            // 2. Ensure guests folder exists
-            await fs.mkdir(GUESTS_DIR, { recursive: true });
-
-            // 3. Write the JSON to the file
-            // Use pretty print for storage, but return unformatted JSON for the response
-            await fs.writeFile(filepath, JSON.stringify(jsonData, null, 2), 'utf8');
-            
-            // 4. Send 200 OK response (Note: uninvited uses 201, but gatecrashers example uses 200)
-            res.writeHead(200, { 
-                'Content-Type': 'application/json',
-                // Add Content-Length for robust transmission
-                'Content-Length': Buffer.byteLength(responseBody, 'utf8') 
-            });
-            res.end(responseBody);
-
-        } catch (error) {
-            // Handle bad JSON (400) or file system errors (500)
-            console.error('Error handling POST request:', error.message);
-            
-            // If the error is a SyntaxError (bad JSON), respond with 400.
-            if (error instanceof SyntaxError) {
-                res.writeHead(400, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'Invalid JSON body' }));
-            } else {
-                // If the error is a file system error, respond with 500 (as per uninvited instructions)
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'server failed' }));
-            }
-        }
-    });
-}
-
-// --- Create HTTP server ---
-const server = http.createServer(async (req, res) => {
-    if (req.method === 'POST') {
-        const authHeader = req.headers['authorization'];
-        const credentials = parseBasicAuth(authHeader);
-
-        if (!credentials || !isAuthenticated(credentials.user, credentials.pass)) {
-            // Handle 401 Unauthorized
-            res.writeHead(401, {
-                'WWW-Authenticate': 'Basic realm="Guest List Access"',
-                'Content-Type': 'application/json'
-            });
-            // Matching the curl example's body output ("Authorization Required%")
-            res.end("Authorization Required\n"); 
-            return;
-        }
-
-        // Handle Authorized POST request
-        await handlePost(req, res);
-    } else {
-        // Handle non-POST methods
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Not Found' }));
-    }
+  req.on('error', () => {
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'server failed' }));
+  });
 });
 
-// --- Start server ---
 server.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
-});
-
-server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-        console.error(`Port ${PORT} is already in use.`);
-    } else {
-        console.error('Server error:', err);
-    }
-    process.exit(1);
+  console.log(`Server listening on port ${PORT}`);
 });
