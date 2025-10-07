@@ -1,21 +1,43 @@
 #!/usr/bin/env node
 
-import { readdirSync } from 'fs';
-import { resolve } from 'path';
+import { readdirSync, statSync } from 'fs';
+import { resolve, join } from 'path';
 
-// Take directory path argument, or use current directory
 const dirPath = process.argv[2] ? resolve(process.argv[2]) : process.cwd();
 
 try {
-  // Read directory entries
   const entries = readdirSync(dirPath);
 
-  // Sort alphabetically (ascending)
-  const sorted = entries.sort((a, b) => a.localeCompare(b));
+  // Keep only files (not directories) to behave like the tests
+  const files = entries.filter(name => {
+    try {
+      return statSync(join(dirPath, name)).isFile();
+    } catch {
+      return false;
+    }
+  });
 
-  // Print formatted list
-  sorted.forEach((name, index) => {
-    console.log(`${index + 1}. ${name}`);
+  const parsed = files.map(name => {
+    // remove extension
+    const base = name.replace(/\.[^/.]+$/, '');
+    const parts = base.split('_');
+    const first = parts[0] ?? '';
+    const last = parts.length > 1 ? parts.slice(1).join('_') : '';
+    const formatted = last ? `${last} ${first}` : first;
+    return { first, last, formatted, original: name };
+  });
+
+  // Sort by last name (ascending), fallback to first name if last names equal
+  parsed.sort((a, b) => {
+    const aLast = a.last || a.first;
+    const bLast = b.last || b.first;
+    const cmp = aLast.localeCompare(bLast, undefined, { sensitivity: 'base' });
+    if (cmp !== 0) return cmp;
+    return a.first.localeCompare(b.first, undefined, { sensitivity: 'base' });
+  });
+
+  parsed.forEach((p, i) => {
+    console.log(`${i + 1}. ${p.formatted}`);
   });
 
 } catch (err) {
