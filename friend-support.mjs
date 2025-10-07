@@ -4,21 +4,18 @@ import http from 'http';
 import { readFile } from 'fs/promises';
 import { resolve } from 'path';
 
-// Define the port
 const PORT = 5000;
 
-// Create HTTP server
 const server = http.createServer(async (req, res) => {
   try {
-    // Only handle GET requests
     if (req.method !== 'GET') {
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'guest not found' }));
       return;
     }
 
-    // Extract guest name from URL path
-    const guestName = decodeURIComponent(req.url.slice(1)); // remove leading '/'
+    // Extract guest name (strip leading '/')
+    const guestName = decodeURIComponent(req.url.slice(1));
     if (!guestName) {
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'guest not found' }));
@@ -26,31 +23,25 @@ const server = http.createServer(async (req, res) => {
     }
 
     try {
-      // Try to read the corresponding JSON file (e.g., "Elis_Galindo.json")
-      const filePath = resolve(`${guestName}.json`);
+      // ✅ Look for the file inside the "guests" directory
+      const filePath = resolve('guests', `${guestName}.json`);
       const data = await readFile(filePath, 'utf8');
-
-      // Parse JSON to ensure validity
       const guest = JSON.parse(data);
 
-      // Return guest data
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(guest, null, 2));
-
+      res.end(JSON.stringify(guest));
     } catch {
-      // File not found or JSON error
+      // File not found or invalid JSON
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'guest not found' }));
     }
-
   } catch {
-    // Server failure
+    // Internal server error
     res.writeHead(500, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'server failed' }));
   }
 });
 
-// Start server
 server.listen(PORT, () => {
-  console.log(`🖥️  Friend Support server listening on port ${PORT}`);
+  console.log(`Server listening on port ${PORT}`);
 });
