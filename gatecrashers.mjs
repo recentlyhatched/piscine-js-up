@@ -1,38 +1,36 @@
-// Corrected logic for handlePost in gatecrashers.mjs
+import fs from 'fs/promises';
+import path from 'path';
 
 async function handlePost(req, res) {
-    const filename = path.basename(req.url); 
-    const filepath = path.join(GUESTS_DIR, `${filename}.json`);
+  const filename = path.basename(req.url);
+  const filepath = path.join(GUESTS_DIR, `${filename}.json`);
 
-    let body = '';
-    // Reading the request body
-    req.on('data', chunk => {
-        body += chunk.toString();
-    });
+  let body = '';
+  req.on('data', chunk => {
+    body += chunk.toString();
+  });
 
-    req.on('end', async () => {
-        try {
-            // 1. Ensure the guests directory exists
-            await fs.mkdir(GUESTS_DIR, { recursive: true });
+  req.on('end', async () => {
+    try {
+      if (!body) throw new Error('Empty request body');
 
-            // 2. Store the body content in the file
-            await fs.writeFile(filepath, body, 'utf8');
+      // Parse JSON
+      const jsonData = JSON.parse(body);
 
-            // 3. Set response headers and status
-            res.setHeader('Content-Type', 'application/json');
-            // Adding Content-Length can sometimes help ensure the entire body is transmitted
-            res.setHeader('Content-Length', Buffer.byteLength(body, 'utf8')); 
-            res.writeHead(200);
+      // Ensure the guests directory exists
+      await fs.mkdir(GUESTS_DIR, { recursive: true });
 
-            // 4. Respond with the content that was just stored
-            res.end(body);
+      // Write the parsed JSON to the file
+      await fs.writeFile(filepath, JSON.stringify(jsonData, null, 2), 'utf8');
 
-        } catch (error) {
-            console.error('Error handling POST request:', error);
-            // Handle file or JSON errors gracefully
-            res.setHeader('Content-Type', 'text/plain');
-            res.writeHead(500);
-            res.end('Internal Server Error');
-        }
-    });
+      // Respond with JSON object
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(jsonData));
+
+    } catch (error) {
+      console.error('Error handling POST request:', error);
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: error.message }));
+    }
+  });
 }
