@@ -1,85 +1,70 @@
-#!/usr/bin/env node
-
 import http from 'http';
-import { mkdir, writeFile, access } from 'fs/promises';
-import { join } from 'path';
+import fs from 'fs';
+import path from 'path';
+
+// Authorized users
+const USERS = {
+  'Caleb_Squires': 'abracadabra',
+  'Tyrique_Dalton': 'abracadabra',
+  'Rahima_Young': 'abracadabra'
+};
 
 const PORT = 5000;
-const FRIENDS = ['Caleb_Squires', 'Tyrique_Dalton', 'Rahima_Young'];
-const PASSWORD = 'abracadabra';
 
-function parseAuth(header) {
-  if (!header?.startsWith('Basic ')) return null;
-  try {
-    const base64 = header.split(' ')[1];
-    const decoded = Buffer.from(base64, 'base64').toString('utf8');
-    const [username, password] = decoded.split(':');
-    return { username, password };
-  } catch {
-    return null;
-  }
-}
+const server = http.createServer((req, res) => {
+  if (req.method === 'POST') {
+    const authHeader = req.headers['authorization'];
 
-const server = http.createServer(async (req, res) => {
-  if (req.method !== 'POST') {
-    res.writeHead(500, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'server failed' }));
-    return;
-  }
-
-  // --- AUTHENTICATION ---
-  const auth = parseAuth(req.headers['authorization']);
-  const authorized = auth && FRIENDS.includes(auth.username) && auth.password === PASSWORD;
-  if (!authorized) {
-    res.writeHead(401, { 'Content-Type': 'application/json' });
-    res.end('Authorization Required');
-    return;
-  }
-
-  const guestName = decodeURIComponent(req.url.slice(1));
-  if (!guestName) {
-    res.writeHead(500, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'server failed' }));
-    return;
-  }
-
-  const chunks = [];
-  req.on('data', chunk => chunks.push(chunk));
-
-  req.on('end', async () => {
-    try {
-      const body = Buffer.concat(chunks).toString();
-      const parsed = JSON.parse(body);
-
-      const guestsDir = join(process.cwd(), 'guests');
-      await mkdir(guestsDir, { recursive: true });
-
-      const filePath = join(guestsDir, `${guestName}.json`);
-
-      // Determine if the file already exists
-      let statusCode = 200; // <--- MODIFIED from 201 to 200
-      try {
-        await access(filePath);
-        statusCode = 200; // <--- MODIFIED from 201 to 200
-      } catch {}
-
-      await writeFile(filePath, JSON.stringify(parsed, null, 2), 'utf8');
-
-      // Respond with parsed object and correct status code
-      res.writeHead(statusCode, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(parsed));
-    } catch {
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'server failed' }));
+    // Check for Basic Auth header
+    if (!authHeader || !authHeader.startsWith('Basic ')) {
+      res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Restricted Area"', 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Authorization Required' }));
+      return;
     }
-  });
 
-  req.on('error', () => {
-    res.writeHead(500, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'server failed' }));
-  });
+    // Decode Base64 username:password
+    const base64Credentials = authHeader.split(' ')[1];
+    const credentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
+    const [username, password] = credentials.split(':');
+
+    // Validate credentials
+    if (!USERS[username] || USERS[username] !== password) {
+      res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Restricted Area"', 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Unauthorized' }));
+      return;
+    }
+
+    // Collect request body
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk;
+    });
+
+    req.on('end', () => {
+      try {
+        const jsonData = JSON.parse(body);
+
+        // Save JSON to file named after the URL (remove leading slash)
+        const guestName = req.url.slice(1);
+        const filePath = path.join('./guests', `${guestName}.json`);
+        fs.writeFileSync(filePath, JSON.stringify(jsonData, null, 2));
+
+        // Respond with JSON
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(jsonData));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+      }
+    });
+
+  } else {
+    // Not a POST request
+    res.writeHead(405, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Method Not Allowed' }));
+  }
 });
 
 server.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+  console.log(`Server is listening on port ${PORT}`);
 });
